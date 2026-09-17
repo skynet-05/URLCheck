@@ -29,6 +29,10 @@
         <activity android:name=".activities.TutorialActivity" />
         <activity android:name=".activities.JsonEditorActivity" />
         <activity
+            android:name=".activities.TorPreviewActivity"
+            android:exported="false"
+            android:configChanges="orientation|screenSize" />
+        <activity
             android:name=".dialogs.MainDialog"
             android:clearTaskOnLaunch="true"
             android:excludeFromRecents="true"

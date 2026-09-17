@@ -196,6 +196,7 @@ Hope you find the app useful! And don't hesitate to suggest features, report bug
     <string name="auto_ctabs">"Will enable ctabs. Equivalent of pressing the 'ctabs' button if disabled (even if hidden)."</string>
     <string name="auto_incognito">"Will enable incognito. Equivalent of pressing the 'incognito' button if disabled (even if hidden)."</string>
     <string name="auto_close">"Will close the application, doing nothing else."</string>
+    <string name="auto_torPreview">"Opens a sandboxed in-app preview of the URL routed through Orbot (Tor). Requires Orbot installed and running."</string>
     <string name="auto_checkStatus">"Will run the status check. Equivalent of pressing the 'Check' button."</string>
     <string name="auto_unshort">"Will run the unshort process. Equivalent of pressing the 'Unshort' button."</string>
     <string name="auto_scan">"Will scan the url. Equivalent of pressing the 'Scan' button."</string>
@@ -233,6 +234,22 @@ Built-in patterns include:
 - 'enabled': boolean: set to false to disable the pattern.
 Note: if you edit the patterns, new built-in patterns from app updates will not be added automatically (you can restore them with the reset option)."</string>
     <!-- -->
+    <string name="mTorPreview_name">Tor preview</string>
+    <string name="mTorPreview_desc">Preview the link inside the app over Tor (via Orbot) before opening it in your normal browser. Traffic does not use Tor unless Orbot is installed and connected; there is no clearnet fallback.</string>
+    <string name="mTorPreview_button">Preview over Tor</string>
+    <string name="tor_preview_title">Tor preview (sandbox)</string>
+    <string name="tor_connecting">Connecting to Orbot…</string>
+    <string name="tor_orbot_missing_title">Orbot required</string>
+    <string name="tor_orbot_missing">Install and start Orbot to preview links over Tor. URLCheck will not load this preview on the normal network.</string>
+    <string name="tor_orbot_install">Get Orbot</string>
+    <string name="tor_orbot_timeout">Timed out waiting for Orbot. Open Orbot, start Tor, then try again.</string>
+    <string name="tor_orbot_starts_disabled">Orbot blocked background starts. Open Orbot manually and start Tor.</string>
+    <string name="tor_proxy_failed">Could not route the preview through Tor on this device.</string>
+    <string name="tor_open_browser">Open in browser</string>
+    <string name="tor_reload">Reload</string>
+    <string name="tor_external_link_title">Leave sandbox?</string>
+    <string name="tor_external_link_message">This link uses a non-http scheme and may open another app:\n%s</string>
+    <string name="tor_external_link_open">Open</string>
     <string name="mOpen_name">Open and share</string>
     <string name="mOpen_desc">"Contains the following buttons (left to right):
 - Custom Tabs button: toggle to enable/disable the custom tab feature. When enabled, the browser should be opened in a 'lite' mode.
