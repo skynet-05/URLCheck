@@ -61,13 +61,20 @@ public class TorPreviewActivity extends Activity {
         webView = findViewById(R.id.tor_webview);
         configureWebView();
 
-        if (!TorWebViewProxy.apply(webView, proxyHost, proxyPort)) {
-            Toast.makeText(this, R.string.tor_proxy_failed, Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        TorWebViewProxy.apply(this, proxyHost, proxyPort, new TorWebViewProxy.Callback() {
+            @Override
+            public void onProxyReady() {
+                runOnUiThread(() -> webView.loadUrl(initialUrl));
+            }
 
-        webView.loadUrl(initialUrl);
+            @Override
+            public void onProxyFailed() {
+                runOnUiThread(() -> {
+                    Toast.makeText(TorPreviewActivity.this, R.string.tor_proxy_failed, Toast.LENGTH_LONG).show();
+                    finish();
+                });
+            }
+        });
     }
 
     private void configureWebView() {
@@ -179,7 +186,7 @@ public class TorPreviewActivity extends Activity {
         }
         CookieManager.getInstance().removeAllCookies(null);
         CookieManager.getInstance().flush();
-        TorWebViewProxy.clear();
+        TorWebViewProxy.clear(this, null);
         super.onDestroy();
     }
 }
