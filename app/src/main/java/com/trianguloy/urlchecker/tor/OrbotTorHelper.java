@@ -28,10 +28,15 @@ public final class OrbotTorHelper {
 
     public static final String STATUS_ON = "ON";
     public static final String STATUS_OFF = "OFF";
+    public static final String STATUS_STARTING = "STARTING";
+    public static final String STATUS_STOPPING = "STOPPING";
     public static final String STATUS_STARTS_DISABLED = "STARTS_DISABLED";
 
     public static final String DEFAULT_PROXY_HOST = "127.0.0.1";
     public static final int DEFAULT_HTTP_PROXY_PORT = 8118;
+
+    public static final long PREVIEW_START_TIMEOUT_MS = 90_000;
+    public static final long STATUS_UI_TIMEOUT_MS = 12_000;
 
     public record TorProxy(String host, int httpPort) {
     }
@@ -42,7 +47,34 @@ public final class OrbotTorHelper {
         void onTorError(int messageResId);
     }
 
-    private static final long STATUS_TIMEOUT_MS = 90_000;
+    /** Cancels an in-flight {@link #queryTorStatus} request. */
+    public static final class QuerySession {
+        private BroadcastReceiver receiver;
+        private Runnable timeoutRunnable;
+        private Handler main;
+        private Context app;
+        private boolean finished;
+
+        private void finish() {
+            if (finished) return;
+            finished = true;
+            if (main != null && timeoutRunnable != null) {
+                main.removeCallbacks(timeoutRunnable);
+            }
+            if (app != null && receiver != null) {
+                try {
+                    app.unregisterReceiver(receiver);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            receiver = null;
+            timeoutRunnable = null;
+        }
+
+        public void cancel() {
+            finish();
+        }
+    }
 
     private OrbotTorHelper() {
     }
@@ -58,68 +90,78 @@ public final class OrbotTorHelper {
 
     /**
      * Ask Orbot for status / startup and invoke callback when Tor HTTP proxy is available.
-     * Unregisters the status receiver when done or on timeout.
      */
-    public static void ensureTorRunning(Context context, Callback callback) {
+    public static QuerySession ensureTorRunning(Context context, Callback callback) {
+        return queryTorStatus(context, true, PREVIEW_START_TIMEOUT_MS, callback);
+    }
+
+    /**
+     * Listens for Orbot STATUS. When {@code startIfOff} is false, OFF is reported immediately without
+     * asking Orbot to start (for passive UI). When true, sends START until ON or failure.
+     */
+    public static QuerySession queryTorStatus(
+            Context context,
+            boolean startIfOff,
+            long timeoutMs,
+            Callback callback) {
+
         if (!isOrbotInstalled(context)) {
-            callback.onTorError(R.string.tor_orbot_missing);
-            return;
+            callback.onTorError(R.string.tor_status_orbot_missing);
+            return new QuerySession();
         }
 
-        Handler main = new Handler(Looper.getMainLooper());
-        Context app = context.getApplicationContext();
+        QuerySession session = new QuerySession();
+        session.main = new Handler(Looper.getMainLooper());
+        session.app = context.getApplicationContext();
+        session.finished = false;
 
-        final BroadcastReceiver[] receiverHolder = new BroadcastReceiver[1];
-        final Runnable[] timeoutHolder = new Runnable[1];
-
-        receiverHolder[0] = new BroadcastReceiver() {
+        session.receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context ctx, Intent intent) {
-                if (intent == null || !ACTION_STATUS.equals(intent.getAction())) return;
+                if (session.finished || intent == null || !ACTION_STATUS.equals(intent.getAction())) return;
 
                 String status = intent.getStringExtra(EXTRA_STATUS);
                 if (status == null) return;
 
                 if (STATUS_ON.equals(status)) {
-                    cleanup();
+                    session.finish();
                     String host = intent.getStringExtra(EXTRA_HTTP_PROXY_HOST);
                     int port = intent.getIntExtra(EXTRA_HTTP_PROXY_PORT, DEFAULT_HTTP_PROXY_PORT);
                     if (host == null || host.isEmpty()) host = DEFAULT_PROXY_HOST;
                     callback.onTorReady(new TorProxy(host, port));
                 } else if (STATUS_STARTS_DISABLED.equals(status)) {
-                    cleanup();
+                    session.finish();
                     callback.onTorError(R.string.tor_orbot_starts_disabled);
                 } else if (STATUS_OFF.equals(status)) {
-                    requestOrbotStart(app);
+                    if (startIfOff) {
+                        requestOrbotStart(session.app);
+                    } else {
+                        session.finish();
+                        callback.onTorError(R.string.tor_status_off);
+                    }
+                } else if (STATUS_STOPPING.equals(status)) {
+                    session.finish();
+                    callback.onTorError(R.string.tor_status_off);
                 }
-            }
-
-            private void cleanup() {
-                main.removeCallbacks(timeoutHolder[0]);
-                try {
-                    app.unregisterReceiver(receiverHolder[0]);
-                } catch (IllegalArgumentException ignored) {
-                }
+                // STARTING: wait for ON or timeout
             }
         };
 
-        timeoutHolder[0] = () -> {
-            try {
-                app.unregisterReceiver(receiverHolder[0]);
-            } catch (IllegalArgumentException ignored) {
-            }
+        session.timeoutRunnable = () -> {
+            session.finish();
             callback.onTorError(R.string.tor_orbot_timeout);
         };
 
         IntentFilter filter = new IntentFilter(ACTION_STATUS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            app.registerReceiver(receiverHolder[0], filter, Context.RECEIVER_EXPORTED);
+            session.app.registerReceiver(session.receiver, filter, Context.RECEIVER_EXPORTED);
         } else {
-            app.registerReceiver(receiverHolder[0], filter);
+            session.app.registerReceiver(session.receiver, filter);
         }
-        main.postDelayed(timeoutHolder[0], STATUS_TIMEOUT_MS);
+        session.main.postDelayed(session.timeoutRunnable, timeoutMs);
 
-        requestOrbotStart(app);
+        requestOrbotStart(session.app);
+        return session;
     }
 
     private static void requestOrbotStart(Context context) {

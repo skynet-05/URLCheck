@@ -237,6 +237,11 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="mTorPreview_name">Tor preview</string>
     <string name="mTorPreview_desc">Preview the link inside the app over Tor (via Orbot) before opening it in your normal browser. Traffic does not use Tor unless Orbot is installed and connected; there is no clearnet fallback.</string>
     <string name="mTorPreview_button">Preview over Tor</string>
+    <string name="tor_status_label">Tor connection status</string>
+    <string name="tor_status_checking">Checking Orbot…</string>
+    <string name="tor_status_ready">Tor ready (Orbot connected)</string>
+    <string name="tor_status_off">Tor off — tap to check again or open Orbot</string>
+    <string name="tor_status_orbot_missing">Orbot not installed</string>
     <string name="tor_preview_title">Tor preview (sandbox)</string>
     <string name="tor_connecting">Connecting to Orbot…</string>
     <string name="tor_orbot_missing_title">Orbot required</string>

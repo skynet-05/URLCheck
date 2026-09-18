@@ -42,7 +42,7 @@ android {
     applicationVariants.configureEach {
         outputs.configureEach {
             if (name == "debug" && applicationId.contains("torpreview")) {
-                outputFileName = "URLCheck-tor-preview-sidebyside-debug.apk"
+                outputFileName = "URLCheck-tor-preview-status-debug.apk"
             } else {
                 outputFileName = "URLCheck-$versionName${name == "release" ? "" : "-$name"}.apk"
             }

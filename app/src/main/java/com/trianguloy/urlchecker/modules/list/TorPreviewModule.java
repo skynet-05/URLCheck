@@ -2,6 +2,8 @@ package com.trianguloy.urlchecker.modules.list;
 
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.activities.ModulesActivity;
@@ -11,8 +13,10 @@ import com.trianguloy.urlchecker.modules.AModuleData;
 import com.trianguloy.urlchecker.modules.AModuleDialog;
 import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.modules.DescriptionConfig;
+import com.trianguloy.urlchecker.tor.OrbotTorHelper;
 import com.trianguloy.urlchecker.tor.TorPreviewLauncher;
 import com.trianguloy.urlchecker.url.UrlData;
+import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 
 import java.util.List;
 
@@ -53,6 +57,10 @@ class TorPreviewDialog extends AModuleDialog {
     );
 
     private Button preview;
+    private ImageView statusIcon;
+    private TextView statusText;
+    private View statusRow;
+    private OrbotTorHelper.QuerySession statusQuery;
 
     public TorPreviewDialog(MainDialog dialog) {
         super(dialog);
@@ -66,11 +74,59 @@ class TorPreviewDialog extends AModuleDialog {
     @Override
     public void onInitialize(View views) {
         preview = views.findViewById(R.id.tor_preview);
+        statusIcon = views.findViewById(R.id.tor_status_icon);
+        statusText = views.findViewById(R.id.tor_status_text);
+        statusRow = views.findViewById(R.id.tor_status_row);
+
         preview.setOnClickListener(v -> TorPreviewLauncher.start(getActivity(), getUrl()));
+        statusRow.setOnClickListener(v -> refreshTorStatus(true));
+        AndroidUtils.longTapForDescription(statusRow);
+
+        refreshTorStatus(false);
     }
 
     @Override
     public void onDisplayUrl(UrlData urlData) {
         preview.setEnabled(urlData.url != null && !urlData.url.isBlank());
+        refreshTorStatus(false);
+    }
+
+    private void refreshTorStatus(boolean startIfOff) {
+        cancelStatusQuery();
+        setStatusUi(false, R.string.tor_status_checking);
+
+        if (!OrbotTorHelper.isOrbotInstalled(getActivity())) {
+            setStatusUi(false, R.string.tor_status_orbot_missing);
+            return;
+        }
+
+        statusQuery = OrbotTorHelper.queryTorStatus(
+                getActivity(),
+                startIfOff,
+                OrbotTorHelper.STATUS_UI_TIMEOUT_MS,
+                new OrbotTorHelper.Callback() {
+                    @Override
+                    public void onTorReady(OrbotTorHelper.TorProxy proxy) {
+                        getActivity().runOnUiThread(() -> setStatusUi(true, R.string.tor_status_ready));
+                    }
+
+                    @Override
+                    public void onTorError(int messageResId) {
+                        getActivity().runOnUiThread(() -> setStatusUi(false, messageResId));
+                    }
+                });
+    }
+
+    private void cancelStatusQuery() {
+        if (statusQuery != null) {
+            statusQuery.cancel();
+            statusQuery = null;
+        }
+    }
+
+    private void setStatusUi(boolean ready, int messageResId) {
+        statusIcon.setImageResource(ready ? R.drawable.tor_status_ok : R.drawable.tor_status_error);
+        statusText.setText(messageResId);
+        statusIcon.setContentDescription(getActivity().getString(messageResId));
     }
 }
