@@ -16,6 +16,11 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Side-by-side with store/F-Droid URLCheck (distinct package on the same device).
+            applicationIdSuffix '.torpreview'
+            versionNameSuffix '-torpreview'
+        }
         release {
             minifyEnabled true
             shrinkResources true
@@ -36,7 +41,11 @@ android {
     // rename output apks
     applicationVariants.configureEach {
         outputs.configureEach {
-            outputFileName = "URLCheck-$versionName${name == "release" ? "" : "-$name"}.apk"
+            if (name == "debug" && applicationId.contains("torpreview")) {
+                outputFileName = "URLCheck-tor-preview-sidebyside-debug.apk"
+            } else {
+                outputFileName = "URLCheck-$versionName${name == "release" ? "" : "-$name"}.apk"
+            }
         }
     }
 
