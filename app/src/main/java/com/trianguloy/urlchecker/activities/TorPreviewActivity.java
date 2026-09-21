@@ -16,15 +16,16 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.trianguloy.urlchecker.R;
-import com.trianguloy.urlchecker.tor.OrbotTorHelper;
 import com.trianguloy.urlchecker.tor.TorPreviewLauncher;
 import com.trianguloy.urlchecker.tor.TorPreviewPrefs;
 import com.trianguloy.urlchecker.tor.TorPreviewSession;
+import com.trianguloy.urlchecker.tor.TorStatusCoordinator;
 import com.trianguloy.urlchecker.tor.TorWebViewProxy;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
@@ -34,7 +35,7 @@ import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
 /**
  * Sandboxed in-app preview over Orbot's Tor proxy. Session data is cleared on exit.
  */
-public class TorPreviewActivity extends Activity {
+public class TorPreviewActivity extends Activity implements TorStatusCoordinator.Host {
 
     public static final String EXTRA_PROXY_HOST = "tor_proxy_host";
     public static final String EXTRA_PROXY_PORT = "tor_proxy_port";
@@ -49,6 +50,12 @@ public class TorPreviewActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private Runnable loadTimeoutRunnable;
     private boolean loadFinished;
+    private TorStatusCoordinator torStatus;
+    private ImageView statusIcon;
+    private TextView statusText;
+    private ProgressBar statusProgress;
+    private View retryBtn;
+    private View retryNewCircuitBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,11 +81,44 @@ public class TorPreviewActivity extends Activity {
         webView = findViewById(R.id.tor_webview);
         errorPanel = findViewById(R.id.tor_error_panel);
         errorText = findViewById(R.id.tor_error_message);
-        findViewById(R.id.tor_retry).setOnClickListener(v -> retryLoad(false));
-        findViewById(R.id.tor_retry_new_circuit).setOnClickListener(v -> retryLoad(true));
+        statusIcon = findViewById(R.id.tor_status_icon);
+        statusText = findViewById(R.id.tor_status_text);
+        statusProgress = findViewById(R.id.tor_status_progress);
+        retryBtn = findViewById(R.id.tor_retry);
+        retryNewCircuitBtn = findViewById(R.id.tor_retry_new_circuit);
+        retryBtn.setOnClickListener(v -> retryLoad(false));
+        retryNewCircuitBtn.setOnClickListener(v -> retryLoad(true));
+
+        torStatus = new TorStatusCoordinator(this);
+        torStatus.refresh(false);
 
         configureWebView();
         applyProxyAndLoad(initialUrl);
+    }
+
+    @Override
+    public Activity torHostActivity() {
+        return this;
+    }
+
+    @Override
+    public ImageView statusIcon() {
+        return statusIcon;
+    }
+
+    @Override
+    public TextView statusText() {
+        return statusText;
+    }
+
+    @Override
+    public ProgressBar statusProgress() {
+        return statusProgress;
+    }
+
+    @Override
+    public View[] circuitControls() {
+        return new View[]{retryNewCircuitBtn, retryBtn};
     }
 
     private void configureWebView() {
@@ -187,14 +227,18 @@ public class TorPreviewActivity extends Activity {
     }
 
     private void retryLoad(boolean newCircuit) {
+        if (torStatus.isCircuitBusy()) return;
+        Runnable reload = () -> {
+            showError(false);
+            String url = webView.getUrl();
+            if (url == null || url.isEmpty() || url.startsWith("about:")) url = initialUrl;
+            webView.loadUrl(url);
+        };
         if (newCircuit) {
-            OrbotTorHelper.requestNewCircuit(this);
-            Toast.makeText(this, R.string.tor_new_circuit_sent, Toast.LENGTH_SHORT).show();
+            torStatus.requestNewCircuit(reload);
+        } else {
+            reload.run();
         }
-        showError(false);
-        String url = webView.getUrl();
-        if (url == null || url.isEmpty() || url.startsWith("about:")) url = initialUrl;
-        webView.loadUrl(url);
     }
 
     private boolean handleNavigation(Uri uri) {
@@ -243,12 +287,19 @@ public class TorPreviewActivity extends Activity {
             return true;
         }
         if (id == R.id.tor_new_circuit) {
-            OrbotTorHelper.requestNewCircuit(this);
-            Toast.makeText(this, R.string.tor_new_circuit_sent, Toast.LENGTH_SHORT).show();
-            webView.reload();
+            if (!torStatus.isCircuitBusy()) {
+                torStatus.requestNewCircuit(() -> webView.reload());
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem nym = menu.findItem(R.id.tor_new_circuit);
+        if (nym != null) nym.setEnabled(!torStatus.isCircuitBusy());
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private void openInNormalBrowser() {
@@ -270,6 +321,7 @@ public class TorPreviewActivity extends Activity {
     @Override
     protected void onDestroy() {
         cancelLoadTimeout();
+        if (torStatus != null) torStatus.destroy();
         if (webView != null) {
             if (TorPreviewPrefs.AUTO_CLEAR_ON_CLOSE(this).get()) {
                 TorPreviewSession.clear(webView);

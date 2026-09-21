@@ -3,6 +3,7 @@ package com.trianguloy.urlchecker.modules.list;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.trianguloy.urlchecker.R;
@@ -16,6 +17,7 @@ import com.trianguloy.urlchecker.modules.DescriptionConfig;
 import com.trianguloy.urlchecker.tor.OrbotOnboarding;
 import com.trianguloy.urlchecker.tor.OrbotTorHelper;
 import com.trianguloy.urlchecker.tor.TorPreviewLauncher;
+import com.trianguloy.urlchecker.tor.TorStatusCoordinator;
 import com.trianguloy.urlchecker.url.UrlData;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 
@@ -50,7 +52,7 @@ public class TorPreviewModule extends AModuleData {
     }
 }
 
-class TorPreviewDialog extends AModuleDialog {
+class TorPreviewDialog extends AModuleDialog implements TorStatusCoordinator.Host {
 
     static final List<AutomationRules.Automation<TorPreviewDialog>> AUTOMATIONS = List.of(
             new AutomationRules.Automation<>("torPreview", R.string.auto_torPreview, dialog ->
@@ -61,8 +63,9 @@ class TorPreviewDialog extends AModuleDialog {
     private Button newCircuit;
     private ImageView statusIcon;
     private TextView statusText;
+    private ProgressBar statusProgress;
     private View statusRow;
-    private OrbotTorHelper.QuerySession statusQuery;
+    private TorStatusCoordinator torStatus;
 
     public TorPreviewDialog(MainDialog dialog) {
         super(dialog);
@@ -79,23 +82,25 @@ class TorPreviewDialog extends AModuleDialog {
         newCircuit = views.findViewById(R.id.tor_new_circuit_btn);
         statusIcon = views.findViewById(R.id.tor_status_icon);
         statusText = views.findViewById(R.id.tor_status_text);
+        statusProgress = views.findViewById(R.id.tor_status_progress);
         statusRow = views.findViewById(R.id.tor_status_row);
 
+        torStatus = new TorStatusCoordinator(this);
+
         preview.setOnClickListener(v -> TorPreviewLauncher.start(getActivity(), getUrl()));
-        newCircuit.setOnClickListener(v -> {
-            OrbotTorHelper.requestNewCircuit(getActivity());
-            android.widget.Toast.makeText(getActivity(), R.string.tor_new_circuit_sent, android.widget.Toast.LENGTH_SHORT).show();
-        });
+        newCircuit.setOnClickListener(v -> torStatus.requestNewCircuit(null));
         statusRow.setOnClickListener(v -> onStatusTapped());
         AndroidUtils.longTapForDescription(statusRow);
 
-        refreshTorStatus(false);
+        torStatus.refresh(false);
     }
 
     @Override
     public void onDisplayUrl(UrlData urlData) {
         preview.setEnabled(urlData.url != null && !urlData.url.isBlank());
-        refreshTorStatus(false);
+        if (!torStatus.isCircuitBusy()) {
+            torStatus.refresh(false);
+        }
     }
 
     private void onStatusTapped() {
@@ -103,48 +108,31 @@ class TorPreviewDialog extends AModuleDialog {
             OrbotOnboarding.showMissing(getActivity());
             return;
         }
-        refreshTorStatus(true);
+        torStatus.refresh(true);
     }
 
-    private void refreshTorStatus(boolean startIfOff) {
-        cancelStatusQuery();
-        setStatusUi(false, R.string.tor_status_checking);
-
-        if (!OrbotTorHelper.isOrbotInstalled(getActivity())) {
-            setStatusUi(false, R.string.tor_status_orbot_missing);
-            return;
-        }
-
-        statusQuery = OrbotTorHelper.queryTorStatus(
-                getActivity(),
-                startIfOff,
-                OrbotTorHelper.STATUS_UI_TIMEOUT_MS,
-                new OrbotTorHelper.Callback() {
-                    @Override
-                    public void onTorReady(OrbotTorHelper.TorProxy proxy) {
-                        getActivity().runOnUiThread(() -> setStatusUi(true, R.string.tor_status_ready));
-                    }
-
-                    @Override
-                    public void onTorError(int messageResId) {
-                        getActivity().runOnUiThread(() -> {
-                            setStatusUi(false, messageResId);
-                            if (startIfOff) OrbotOnboarding.showNotReady(getActivity(), messageResId);
-                        });
-                    }
-                });
+    @Override
+    public android.app.Activity torHostActivity() {
+        return getActivity();
     }
 
-    private void cancelStatusQuery() {
-        if (statusQuery != null) {
-            statusQuery.cancel();
-            statusQuery = null;
-        }
+    @Override
+    public ImageView statusIcon() {
+        return statusIcon;
     }
 
-    private void setStatusUi(boolean ready, int messageResId) {
-        statusIcon.setImageResource(ready ? R.drawable.tor_status_ok : R.drawable.tor_status_error);
-        statusText.setText(messageResId);
-        statusIcon.setContentDescription(getActivity().getString(messageResId));
+    @Override
+    public TextView statusText() {
+        return statusText;
+    }
+
+    @Override
+    public ProgressBar statusProgress() {
+        return statusProgress;
+    }
+
+    @Override
+    public View[] circuitControls() {
+        return new View[]{newCircuit, preview};
     }
 }

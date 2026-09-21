@@ -48,7 +48,7 @@
     <string name="linkguard_routing_section">Domain routing</string>
     <string name="linkguard_history_section">Recent links</string>
     <string name="linkguard_ota_section">Updates (optional)</string>
-    <string name="github_pat_hint">Optional GitHub token for API fallback if the Atom feed fails. Atom is used first; leave blank unless needed.</string>
+    <string name="github_pat_hint">Optional GitHub token for API fallback if the Atom feed fails. Atom is used first; stored in app-private preferences (not logged).</string>
     <string name="github_pat_hint_field">GitHub personal access token</string>
     <string name="github_pat_save">Save token</string>
     <string name="domain_routing_editor">Domain routing rules (JSON: pattern → tor | clearnet | ask)</string>
@@ -314,7 +314,7 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="tor_orbot_retry">Retry connection</string>
     <string name="tor_orbot_samsung_hint">On Samsung devices: allow Orbot to run in the background, disable battery restrictions for Orbot, and allow VPN when prompted.</string>
     <string name="tor_new_circuit">New circuit</string>
-    <string name="tor_new_circuit_sent">Requested new Tor circuit from Orbot</string>
+    <string name="tor_status_new_circuit">Switching circuit…</string>
     <string name="tor_clear_session">Clear session</string>
     <string name="tor_session_cleared">Preview session cleared</string>
     <string name="tor_retry">Retry</string>

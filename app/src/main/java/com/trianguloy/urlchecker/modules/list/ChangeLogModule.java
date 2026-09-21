@@ -28,6 +28,11 @@ public class ChangeLogModule extends AModuleData {
     }
 
     @Override
+    public boolean isEnabledByDefault() {
+        return !BuildConfig.WHITE_LABEL;
+    }
+
+    @Override
     public AModuleDialog getDialog(MainDialog cntx) {
         return new ChangeLogModuleDialog(cntx);
     }
@@ -52,6 +57,12 @@ class ChangeLogModuleDialog extends AModuleDialog {
     @Override
     public void onInitialize(View views) {
         var versionManager = new VersionManager(getActivity());
+
+        if (BuildConfig.WHITE_LABEL) {
+            versionManager.markSeen();
+            setVisibility(false);
+            return;
+        }
 
         // set visibility
         var updated = versionManager.wasUpdated();

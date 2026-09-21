@@ -65,6 +65,9 @@ public class VersionManager {
 
     public VersionManager(Activity cntx) {
         lastVersion = LASTVERSION_PREF(cntx);
+        if (BuildConfig.WHITE_LABEL) {
+            markSeen();
+        }
         if (lastVersion.get() == null) {
             // no previous setting, the app is a new install, mark as seen
             // ... or maybe it was updated from an old version (where the setting was not yet implemented, 2.12 or below)

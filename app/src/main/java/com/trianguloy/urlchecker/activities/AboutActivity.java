@@ -70,10 +70,12 @@ public class AboutActivity extends Activity {
         setTitle(R.string.a_about);
         AndroidUtils.configureUp(this);
 
-        setTitle(getTitle()
-                + " (V" + BuildConfig.VERSION_NAME
-                + (!"release".equals(BuildConfig.BUILD_TYPE) ? " - " + BuildConfig.BUILD_TYPE : "")
-                + ")");
+        if (!BuildConfig.WHITE_LABEL) {
+            setTitle(getTitle()
+                    + " (V" + BuildConfig.VERSION_NAME
+                    + (!"release".equals(BuildConfig.BUILD_TYPE) ? " - " + BuildConfig.BUILD_TYPE : "")
+                    + ")");
+        }
 
         if (BuildConfig.WHITE_LABEL) {
             findViewById(R.id.trianguloy).setVisibility(View.GONE);
