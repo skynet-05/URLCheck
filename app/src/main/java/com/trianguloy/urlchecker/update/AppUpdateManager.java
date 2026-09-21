@@ -58,6 +58,7 @@ public final class AppUpdateManager {
         new Thread(() -> {
             try {
                 UpdateRelease update = GitHubReleaseClient.findLatestUpdate(
+                        activity.getApplicationContext(),
                         BuildConfig.VERSION_CODE,
                         BuildConfig.VERSION_NAME);
                 runOnUi(activity, () -> {
@@ -149,6 +150,7 @@ public final class AppUpdateManager {
         conn.setConnectTimeout(30_000);
         conn.setReadTimeout(120_000);
         conn.setInstanceFollowRedirects(true);
+        GitHubHttp.applyDownloadHeaders(conn);
         if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
             throw new Exception("Download HTTP " + conn.getResponseCode());
         }

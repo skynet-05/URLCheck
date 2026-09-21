@@ -45,6 +45,49 @@ final class GitHubHttp {
         conn.setRequestProperty("Accept", "application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8");
     }
 
+    static void applyDownloadHeaders(HttpURLConnection conn) {
+        conn.setRequestProperty("User-Agent", userAgent());
+        conn.setRequestProperty("Accept", "application/vnd.android.package-archive, */*;q=0.8");
+    }
+
+    static boolean isRateLimitResponse(int code, String body) {
+        if (code != 403) return false;
+        String lower = body == null ? "" : body.toLowerCase();
+        return lower.contains("rate limit") || lower.contains("api rate limit");
+    }
+
+    static boolean isRateLimitMessage(String message) {
+        if (message == null) return false;
+        String lower = message.toLowerCase();
+        return lower.contains("rate limit");
+    }
+
+    /** True if the release asset URL responds OK (HEAD, or short GET if HEAD is rejected). */
+    static boolean isApkDownloadAvailable(String url) throws IOException {
+        if (url == null || url.isEmpty()) return false;
+        int code = probeUrl(url, "HEAD");
+        if (code == HttpURLConnection.HTTP_OK) return true;
+        if (code == HttpURLConnection.HTTP_BAD_METHOD || code == 403 || code == 405) {
+            code = probeUrl(url, "GET");
+        }
+        return code == HttpURLConnection.HTTP_OK;
+    }
+
+    private static int probeUrl(String urlString, String method) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
+        conn.setRequestMethod(method);
+        conn.setConnectTimeout(15_000);
+        conn.setReadTimeout(15_000);
+        conn.setInstanceFollowRedirects(true);
+        applyDownloadHeaders(conn);
+        if ("GET".equals(method)) {
+            conn.setRequestProperty("Range", "bytes=0-0");
+        }
+        int code = conn.getResponseCode();
+        conn.disconnect();
+        return code;
+    }
+
     static String readBody(HttpURLConnection conn) throws IOException {
         int code = conn.getResponseCode();
         InputStream stream = code >= 400 ? conn.getErrorStream() : conn.getInputStream();

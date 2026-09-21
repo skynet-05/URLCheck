@@ -8,6 +8,9 @@ import com.trianguloy.urlchecker.BuildConfig;
  * <p>Only GitHub releases with tag {@code linkguard-vX.Y.Z} and asset {@code LinkGuard.apk}
  * are considered. Other tags on the fork (whitelabel, tor-sandbox, etc.) are ignored.
  *
+ * <p>Update checks use the public {@code /releases.atom} feed first (no API rate limit);
+ * the REST API is only used when the feed cannot be read.
+ *
  * <p>Release body must include {@code versionCode: N}. Optional {@code versionName: X.Y.Z}.
  */
 public final class LinkGuardUpdateConfig {

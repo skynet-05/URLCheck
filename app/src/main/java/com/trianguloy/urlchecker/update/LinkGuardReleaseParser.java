@@ -5,7 +5,10 @@ import com.trianguloy.urlchecker.modules.companions.VersionManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.util.Locale;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -96,5 +99,42 @@ final class LinkGuardReleaseParser {
         if (candidate.versionCode < best.versionCode) return best;
         if (VersionManager.isVersionNewer(candidate.versionName)) return candidate;
         return best;
+    }
+
+    static String apkDownloadUrlForTag(String tag) {
+        return "https://github.com/" + LinkGuardUpdateConfig.GITHUB_OWNER + "/"
+                + LinkGuardUpdateConfig.GITHUB_REPO + "/releases/download/" + tag + "/"
+                + OTA_APK_NAME;
+    }
+
+    static UpdateRelease releaseFromTagAndBody(String tag, String body) {
+        if (!isOtaTag(tag)) return null;
+        int versionCode = versionCodeFromBody(body);
+        if (versionCode < 0) return null;
+        String versionName = versionNameFromBody(body);
+        if (versionName == null || versionName.isEmpty()) {
+            versionName = versionNameFromTag(tag);
+        }
+        if (versionName == null || versionName.isEmpty()) return null;
+        return new UpdateRelease(tag, versionCode, versionName, apkDownloadUrlForTag(tag), 0);
+    }
+
+    /** Newest installable release newer than installed, with a reachable APK URL. */
+    static UpdateRelease pickNewestEligible(
+            List<UpdateRelease> candidates,
+            int installedVersionCode,
+            String installedVersionName) throws IOException {
+        List<UpdateRelease> newer = new ArrayList<>();
+        for (UpdateRelease c : candidates) {
+            if (c != null && isNewerThanInstalled(c, installedVersionCode, installedVersionName)) {
+                newer.add(c);
+            }
+        }
+        if (newer.isEmpty()) return null;
+        newer.sort(Comparator.comparingInt((UpdateRelease r) -> r.versionCode).reversed());
+        for (UpdateRelease c : newer) {
+            if (GitHubHttp.isApkDownloadAvailable(c.apkUrl)) return c;
+        }
+        return null;
     }
 }

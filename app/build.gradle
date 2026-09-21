@@ -25,8 +25,8 @@ android {
         compileSdkVersion 36
         minSdkVersion 19
         targetSdkVersion 36
-        versionCode 51
-        versionName "3.5.4"
+        versionCode 52
+        versionName "3.5.5"
         buildConfigField "boolean", "WHITE_LABEL", "false"
     }
 

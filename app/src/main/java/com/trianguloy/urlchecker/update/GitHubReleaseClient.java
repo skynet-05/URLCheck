@@ -1,32 +1,62 @@
 package com.trianguloy.urlchecker.update;
 
+import android.content.Context;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
-/** Fetches Link Guard OTA releases from GitHub REST API. */
+/**
+ * Discovers Link Guard OTA updates. Uses the public releases Atom feed first (no API quota);
+ * REST API is optional fallback when the feed fails.
+ */
 public final class GitHubReleaseClient {
 
     private GitHubReleaseClient() {
     }
 
-    public static UpdateRelease findLatestUpdate(int installedVersionCode, String installedVersionName) throws Exception {
+    public static UpdateRelease findLatestUpdate(
+            Context context,
+            int installedVersionCode,
+            String installedVersionName) throws Exception {
+        if (OtaCheckCache.hasValid(context, installedVersionCode)) {
+            return OtaCheckCache.get(context, installedVersionCode);
+        }
+
+        Exception atomError = null;
         try {
-            return findLatestFromApi(installedVersionCode, installedVersionName);
+            UpdateRelease fromAtom = GitHubReleasesAtomClient.findLatestUpdate(installedVersionCode, installedVersionName);
+            OtaCheckCache.put(context, installedVersionCode, fromAtom);
+            return fromAtom;
+        } catch (Exception e) {
+            atomError = e;
+        }
+
+        try {
+            UpdateRelease fromApi = findLatestFromApi(installedVersionCode, installedVersionName);
+            OtaCheckCache.put(context, installedVersionCode, fromApi);
+            return fromApi;
         } catch (UpdateCheckException apiError) {
-            try {
-                UpdateRelease atom = GitHubReleasesAtomClient.findLatestUpdate(installedVersionCode, installedVersionName);
-                if (atom != null) return atom;
-            } catch (Exception ignored) {
+            if (GitHubHttp.isRateLimitMessage(apiError.getMessage()) && atomError != null) {
+                throw preferAtomFailure(atomError, apiError);
             }
             throw apiError;
         }
     }
 
+    private static UpdateCheckException preferAtomFailure(Exception atomError, UpdateCheckException apiError) {
+        if (atomError instanceof UpdateCheckException) return (UpdateCheckException) atomError;
+        return new UpdateCheckException(atomError.getMessage() != null
+                ? atomError.getMessage()
+                : apiError.getMessage());
+    }
+
     private static UpdateRelease findLatestFromApi(int installedVersionCode, String installedVersionName) throws Exception {
         JSONArray releases = fetchAllReleases();
-        UpdateRelease best = null;
+        List<UpdateRelease> candidates = new ArrayList<>();
         for (int i = 0; i < releases.length(); i++) {
             JSONObject release = releases.getJSONObject(i);
             if (release.optBoolean("draft", false)) continue;
@@ -37,13 +67,9 @@ public final class GitHubReleaseClient {
             JSONObject asset = LinkGuardReleaseParser.pickLinkGuardApk(release.optJSONArray("assets"));
             UpdateRelease candidate = LinkGuardReleaseParser.parseRelease(
                     tag, release.optString("body", ""), asset);
-            if (candidate == null) continue;
-            if (!LinkGuardReleaseParser.isNewerThanInstalled(candidate, installedVersionCode, installedVersionName)) {
-                continue;
-            }
-            best = LinkGuardReleaseParser.pickBest(best, candidate);
+            if (candidate != null) candidates.add(candidate);
         }
-        return best;
+        return LinkGuardReleaseParser.pickNewestEligible(candidates, installedVersionCode, installedVersionName);
     }
 
     private static JSONArray fetchAllReleases() throws Exception {

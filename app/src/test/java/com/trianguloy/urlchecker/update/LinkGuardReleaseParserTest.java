@@ -3,6 +3,7 @@ package com.trianguloy.urlchecker.update;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -27,5 +28,17 @@ public class LinkGuardReleaseParserTest {
     public void versionCodeFromBodyRequired() {
         assertEquals(51, LinkGuardReleaseParser.versionCodeFromBody("versionCode: 51\nversionName: 3.5.4"));
         assertEquals(-1, LinkGuardReleaseParser.versionCodeFromBody("no code here"));
+    }
+
+    @Test
+    public void releaseFromTagAndBodyBuildsDownloadUrl() {
+        UpdateRelease r = LinkGuardReleaseParser.releaseFromTagAndBody(
+                "linkguard-v3.5.5",
+                "versionCode: 52\nversionName: 3.5.5");
+        assertNotNull(r);
+        assertEquals(52, r.versionCode);
+        assertEquals("3.5.5", r.versionName);
+        assertTrue(r.apkUrl.endsWith("/releases/download/linkguard-v3.5.5/LinkGuard.apk"));
+        assertNull(LinkGuardReleaseParser.releaseFromTagAndBody("whitelabel-tor-linkcheck", "versionCode: 1"));
     }
 }
