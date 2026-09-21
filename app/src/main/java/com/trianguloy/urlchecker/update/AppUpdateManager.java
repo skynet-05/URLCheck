@@ -114,6 +114,14 @@ public final class AppUpdateManager {
                 File apk = downloadApk(activity, update, progress);
                 runOnUi(activity, () -> {
                     progress.dismiss();
+                    if (!ApkSignatureCompat.signaturesMatch(activity, apk)) {
+                        new AlertDialog.Builder(activity)
+                                .setTitle(R.string.ota_signature_title)
+                                .setMessage(R.string.ota_signature_message)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show();
+                        return;
+                    }
                     ApkInstallHelper.install(activity, apk);
                 });
             } catch (Exception e) {

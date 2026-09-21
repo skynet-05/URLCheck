@@ -36,6 +36,8 @@
     <string name="ota_error_title">Update failed</string>
     <string name="ota_error_message">%1$s</string>
     <string name="ota_allow_install">Allow installs from this app, then try again.</string>
+    <string name="ota_signature_title">Different signing key</string>
+    <string name="ota_signature_message">This update was signed with a different key than the Link Guard build on your phone (common if you first installed an older debug APK). Uninstall Link Guard, then install the new APK once from GitHub Releases. Later OTA updates from the same release pipeline will install normally.</string>
     <string name="txt_about">"App created by %1$s.
 
 Contributions: %2$s.
