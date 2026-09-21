@@ -1,22 +1,16 @@
 package com.trianguloy.urlchecker.update;
 
-import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.modules.companions.VersionManager;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Fetches and parses GitHub releases (no auth; public repo). */
+/** Fetches and parses GitHub releases (REST API, Atom feed fallback). */
 public final class GitHubReleaseClient {
 
     private static final Pattern VERSION_CODE = Pattern.compile("versionCode\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
@@ -27,7 +21,20 @@ public final class GitHubReleaseClient {
     }
 
     public static UpdateRelease findLatestUpdate(int installedVersionCode, String installedVersionName) throws Exception {
-        JSONArray releases = fetchReleases();
+        try {
+            return findLatestFromApi(installedVersionCode, installedVersionName);
+        } catch (UpdateCheckException apiError) {
+            try {
+                UpdateRelease atom = GitHubReleasesAtomClient.findLatestUpdate(installedVersionCode, installedVersionName);
+                if (atom != null) return atom;
+            } catch (Exception ignored) {
+            }
+            throw apiError;
+        }
+    }
+
+    private static UpdateRelease findLatestFromApi(int installedVersionCode, String installedVersionName) throws Exception {
+        JSONArray releases = fetchAllReleases();
         UpdateRelease best = null;
         for (int i = 0; i < releases.length(); i++) {
             JSONObject release = releases.getJSONObject(i);
@@ -61,26 +68,41 @@ public final class GitHubReleaseClient {
         return best;
     }
 
-    private static JSONArray fetchReleases() throws Exception {
-        HttpURLConnection conn = (HttpURLConnection) new URL(LinkGuardUpdateConfig.RELEASES_API).openConnection();
-        conn.setRequestMethod("GET");
-        conn.setConnectTimeout(20_000);
-        conn.setReadTimeout(30_000);
-        conn.setRequestProperty("Accept", "application/vnd.github+json");
-        conn.setRequestProperty("User-Agent", "LinkGuard-OTA/" + BuildConfig.VERSION_NAME);
-
-        int code = conn.getResponseCode();
-        if (code != 200) {
-            throw new IOException("GitHub API HTTP " + code);
-        }
-        try (var reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) sb.append(line);
-            return new JSONArray(sb.toString());
-        } finally {
+    private static JSONArray fetchAllReleases() throws Exception {
+        JSONArray all = new JSONArray();
+        String url = LinkGuardUpdateConfig.RELEASES_API;
+        for (int page = 0; page < 3 && url != null; page++) {
+            HttpURLConnection conn = GitHubHttp.openGet(url);
+            int code = conn.getResponseCode();
+            String body = GitHubHttp.readBody(conn);
+            if (code != 200) {
+                conn.disconnect();
+                throw GitHubHttp.httpFailure(code, body, "GitHub API");
+            }
+            JSONArray pageData = new JSONArray(body);
+            for (int i = 0; i < pageData.length(); i++) {
+                all.put(pageData.getJSONObject(i));
+            }
+            url = nextPageUrl(conn);
             conn.disconnect();
+            if (pageData.length() == 0) break;
         }
+        return all;
+    }
+
+    private static String nextPageUrl(HttpURLConnection conn) {
+        String link = conn.getHeaderField("Link");
+        if (link == null) return null;
+        for (String part : link.split(",")) {
+            if (part.contains("rel=\"next\"")) {
+                int start = part.indexOf('<');
+                int end = part.indexOf('>');
+                if (start >= 0 && end > start) {
+                    return part.substring(start + 1, end);
+                }
+            }
+        }
+        return null;
     }
 
     private static JSONObject pickApkAsset(JSONArray assets, String tag) throws org.json.JSONException {
