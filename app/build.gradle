@@ -4,15 +4,29 @@ plugins {
     id 'com.android.application'
 }
 
+def linkguardProps = new Properties()
+def linkguardPropsFile = rootProject.file('signing/linkguard.properties')
+if (linkguardPropsFile.exists()) {
+    linkguardPropsFile.withInputStream { linkguardProps.load(it) }
+}
+
 android {
     namespace 'com.trianguloy.urlchecker'
+    signingConfigs {
+        linkguard {
+            storeFile file(linkguardProps.getProperty('storeFile', 'signing/linkguard.jks'))
+            storePassword linkguardProps.getProperty('storePassword', '')
+            keyAlias linkguardProps.getProperty('keyAlias', 'linkguard')
+            keyPassword linkguardProps.getProperty('keyPassword', '')
+        }
+    }
     defaultConfig {
         applicationId "live.notonline.linkguard"
         compileSdkVersion 36
         minSdkVersion 19
         targetSdkVersion 36
-        versionCode 47
-        versionName "3.5"
+        versionCode 48
+        versionName "3.5.1"
         buildConfigField "boolean", "WHITE_LABEL", "false"
     }
 
@@ -20,6 +34,9 @@ android {
         debug {
             buildConfigField "boolean", "WHITE_LABEL", "true"
             versionNameSuffix '-personal'
+            if (linkguardPropsFile.exists()) {
+                signingConfig signingConfigs.linkguard
+            }
         }
         release {
             minifyEnabled true
@@ -42,7 +59,7 @@ android {
     applicationVariants.configureEach {
         outputs.configureEach {
             if (name == "debug") {
-                outputFileName = "LinkGuard-tor-debug.apk"
+                outputFileName = "LinkGuard.apk"
             } else {
                 outputFileName = "URLCheck-$versionName${name == "release" ? "" : "-$name"}.apk"
             }
@@ -78,6 +95,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     // WebView process-wide proxy override (API 21+ when WebView supports PROXY_OVERRIDE; required on modern Chromium WebView)
     implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'androidx.core:core:1.13.1'
 
     testImplementation 'junit:junit:4.13.2'
 }

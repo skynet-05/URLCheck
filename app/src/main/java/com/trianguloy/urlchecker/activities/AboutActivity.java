@@ -23,6 +23,7 @@ import com.trianguloy.urlchecker.utilities.methods.Inflater;
 import com.trianguloy.urlchecker.utilities.methods.JavaUtils.Function;
 import com.trianguloy.urlchecker.utilities.methods.LocaleUtils;
 import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
+import com.trianguloy.urlchecker.update.AppUpdateManager;
 import com.trianguloy.urlchecker.utilities.methods.StreamUtils;
 
 import java.io.IOException;
@@ -78,6 +79,8 @@ public class AboutActivity extends Activity {
             findViewById(R.id.trianguloy).setVisibility(View.GONE);
             findViewById(R.id.links).setVisibility(View.GONE);
             this.<TextView>findViewById(R.id.txt_about).setText(R.string.whitelabel_about);
+            findViewById(R.id.btn_about_updates).setVisibility(View.VISIBLE);
+            findViewById(R.id.btn_about_updates).setOnClickListener(v -> AppUpdateManager.checkManual(this));
         } else {
             this.<TextView>findViewById(R.id.txt_about).setText(
                     getString(R.string.txt_about,

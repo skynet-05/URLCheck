@@ -13,7 +13,9 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
+import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
+import com.trianguloy.urlchecker.update.AppUpdateManager;
 import com.trianguloy.urlchecker.fragments.BrowserButtonsFragment;
 import com.trianguloy.urlchecker.fragments.ResultCodeInjector;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
@@ -48,6 +50,12 @@ public class SettingsActivity extends Activity {
         setContentView(R.layout.activity_settings);
         setTitle(R.string.a_settings);
         AndroidUtils.configureUp(this);
+
+        View updateBtn = findViewById(R.id.btn_check_updates);
+        if (BuildConfig.WHITE_LABEL) {
+            updateBtn.setVisibility(View.VISIBLE);
+            updateBtn.setOnClickListener(v -> AppUpdateManager.checkManual(this));
+        }
 
         configureBrowserButtons();
         configureTheme();

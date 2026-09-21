@@ -25,6 +25,17 @@
         about
     -->
     <string name="whitelabel_about">Personal build. Inspect and open links safely — including optional Tor preview via Orbot.</string>
+    <string name="ota_check_button">Check for updates</string>
+    <string name="ota_checking">Checking for updates…</string>
+    <string name="ota_up_to_date">You have the latest version.</string>
+    <string name="ota_update_title">Update available</string>
+    <string name="ota_update_available">Version %1$s (code %2$s) is available on GitHub. Download and install?</string>
+    <string name="ota_download_install">Download &amp; install</string>
+    <string name="ota_downloading">Downloading update…</string>
+    <string name="ota_downloading_percent">Downloading… %1$d%%</string>
+    <string name="ota_error_title">Update failed</string>
+    <string name="ota_error_message">%1$s</string>
+    <string name="ota_allow_install">Allow installs from this app, then try again.</string>
     <string name="txt_about">"App created by %1$s.
 
 Contributions: %2$s.

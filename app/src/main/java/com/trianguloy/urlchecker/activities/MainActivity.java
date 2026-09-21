@@ -16,6 +16,7 @@ import com.trianguloy.urlchecker.modules.companions.VersionManager;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 import com.trianguloy.urlchecker.utilities.methods.LocaleUtils;
+import com.trianguloy.urlchecker.update.AppUpdateManager;
 import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
 
 /** The activity to show when clicking the desktop shortcut (when 'opening' the app) */
@@ -36,6 +37,10 @@ public class MainActivity extends Activity {
         // open tutorial if not done yet
         if (!TutorialActivity.DONE(this).get()) {
             PackageUtils.startActivity(new Intent(this, TutorialActivity.class), R.string.toast_noApp, this);
+        }
+
+        if (BuildConfig.WHITE_LABEL) {
+            AppUpdateManager.checkOnLaunch(this);
         }
     }
 

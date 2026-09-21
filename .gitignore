@@ -45,6 +45,8 @@ captures/
 # Keystore files
 *.jks
 *.keystore
+# Personal Link Guard OTA keystore (this fork only — required for consistent OTA signatures)
+!signing/linkguard.jks
 
 # External native build folder generated in Android Studio 2.2 and later
 .externalNativeBuild
