@@ -7,7 +7,7 @@
         android:shortcutShortLabel="@string/shortcut_checkClipboard">
         <intent
             android:action="android.intent.action.VIEW"
-            android:targetPackage="com.trianguloy.urlchecker"
+            android:targetPackage="live.notonline.linkguard"
             android:targetClass="com.trianguloy.urlchecker.activities.ShortcutsActivity" />
     </shortcut>
 </shortcuts>

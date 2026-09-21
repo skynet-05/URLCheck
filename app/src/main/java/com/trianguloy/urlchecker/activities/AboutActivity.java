@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.ScrollView;
@@ -73,36 +74,39 @@ public class AboutActivity extends Activity {
                 + (!"release".equals(BuildConfig.BUILD_TYPE) ? " - " + BuildConfig.BUILD_TYPE : "")
                 + ")");
 
-        // fill contributors and translators
-        this.<TextView>findViewById(R.id.txt_about).setText(
-                getString(R.string.txt_about,
-                        getString(R.string.trianguloy),
-                        getString(R.string.contributors),
-                        getString(R.string.all_translators)
-                )
-        );
+        if (BuildConfig.WHITE_LABEL) {
+            findViewById(R.id.trianguloy).setVisibility(View.GONE);
+            findViewById(R.id.links).setVisibility(View.GONE);
+            this.<TextView>findViewById(R.id.txt_about).setText(R.string.whitelabel_about);
+        } else {
+            this.<TextView>findViewById(R.id.txt_about).setText(
+                    getString(R.string.txt_about,
+                            getString(R.string.trianguloy),
+                            getString(R.string.contributors),
+                            getString(R.string.all_translators)
+                    )
+            );
+
+            ViewGroup v_links = findViewById(R.id.links);
+            for (var link : LINKS) {
+                var v_link = Inflater.<TextView>inflate(R.layout.about_link, v_links);
+                link.setLabel(v_link);
+                AndroidUtils.setAsClickable(v_link);
+                v_link.setTag(link.link);
+                v_link.setOnClickListener(v -> open(((String) v.getTag())));
+                v_link.setOnLongClickListener(v -> {
+                    share(((String) v.getTag()));
+                    return true;
+                });
+            }
+        }
 
         // trademarks
         this.<TextView>findViewById(R.id.tm_clear).setText(getStringWithPlaceholder(this, R.string.mClear_tm, R.string.clearRules_url));
         this.<TextView>findViewById(R.id.tm_hosts).setText(getStringWithPlaceholder(this, R.string.mHosts_tm, R.string.stevenBlack_url));
 
-        // create links
-        ViewGroup v_links = findViewById(R.id.links);
-        for (var link : LINKS) {
-            var v_link = Inflater.<TextView>inflate(R.layout.about_link, v_links);
-            link.setLabel(v_link);
-            AndroidUtils.setAsClickable(v_link);
-            v_link.setTag(link.link);
-            // click to open, longclick to share
-            v_link.setOnClickListener(v -> open(((String) v.getTag())));
-            v_link.setOnLongClickListener(v -> {
-                share(((String) v.getTag()));
-                return true;
-            });
-        }
-
-        // show logcat
-        if (BuildConfig.DEBUG) {
+        // show logcat (debug builds only; white-label hides the creator image)
+        if (BuildConfig.DEBUG && !BuildConfig.WHITE_LABEL) {
             findViewById(R.id.trianguloy).setOnClickListener(v -> {
 
                 // get log

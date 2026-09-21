@@ -7,19 +7,19 @@ plugins {
 android {
     namespace 'com.trianguloy.urlchecker'
     defaultConfig {
-        applicationId "com.trianguloy.urlchecker"
+        applicationId "live.notonline.linkguard"
         compileSdkVersion 36
         minSdkVersion 19
         targetSdkVersion 36
         versionCode 47
         versionName "3.5"
+        buildConfigField "boolean", "WHITE_LABEL", "false"
     }
 
     buildTypes {
         debug {
-            // Side-by-side with store/F-Droid URLCheck (distinct package on the same device).
-            applicationIdSuffix '.torpreview'
-            versionNameSuffix '-torpreview'
+            buildConfigField "boolean", "WHITE_LABEL", "true"
+            versionNameSuffix '-personal'
         }
         release {
             minifyEnabled true
@@ -41,8 +41,8 @@ android {
     // rename output apks
     applicationVariants.configureEach {
         outputs.configureEach {
-            if (name == "debug" && applicationId.contains("torpreview")) {
-                outputFileName = "URLCheck-tor-preview-status-debug.apk"
+            if (name == "debug") {
+                outputFileName = "LinkGuard-tor-debug.apk"
             } else {
                 outputFileName = "URLCheck-$versionName${name == "release" ? "" : "-$name"}.apk"
             }

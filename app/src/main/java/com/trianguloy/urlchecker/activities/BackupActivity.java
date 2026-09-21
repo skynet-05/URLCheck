@@ -465,7 +465,8 @@ public class BackupActivity extends Activity {
     }
 
     private String getInitialFile() {
-        return "URLCheck_" + new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date()) + ".ucbckp";
+        String prefix = BuildConfig.WHITE_LABEL ? "LinkGuard_" : "URLCheck_";
+        return prefix + new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date()) + ".ucbckp";
     }
 
     private void showAdvanced() {

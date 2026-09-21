@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.fragments.ResultCodeInjector;
 import com.trianguloy.urlchecker.modules.companions.VersionManager;
@@ -90,7 +91,10 @@ public class MainActivity extends Activity {
     }
 
     public void aboutToast(View view) {
-        Toast.makeText(this, getString(R.string.app_name) + " - " + getString(R.string.trianguloy), Toast.LENGTH_SHORT).show();
+        String toast = BuildConfig.WHITE_LABEL
+                ? getString(R.string.app_name)
+                : getString(R.string.app_name) + " - " + getString(R.string.trianguloy);
+        Toast.makeText(this, toast, Toast.LENGTH_SHORT).show();
     }
 
 }

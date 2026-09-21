@@ -24,6 +24,7 @@
     <!--
         about
     -->
+    <string name="whitelabel_about">Personal build. Inspect and open links safely — including optional Tor preview via Orbot.</string>
     <string name="txt_about">"App created by %1$s.
 
 Contributions: %2$s.

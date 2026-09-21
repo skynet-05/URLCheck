@@ -430,20 +430,22 @@ public class MainDialog extends Activity {
         a2.setRepeatMode(ValueAnimator.REVERSE);
         a2.start();
 
-        var contentB = new ImageView(this);
-        contentB.setImageResource(R.drawable.trianguloy);
-        frame.addView(contentB);
-        var b1 = ObjectAnimator.ofFloat(contentB, "rotation", 360, 0);
-        b1.setDuration((long) (4000 + Math.random() * 2000));
-        b1.setInterpolator(null);
-        b1.setRepeatCount(ValueAnimator.INFINITE);
-        b1.start();
-        var b2 = ObjectAnimator.ofFloat(contentB, "alpha", 0, 1);
-        b2.setDuration(a2.getDuration());
-        b2.setInterpolator(null);
-        b2.setRepeatCount(ValueAnimator.INFINITE);
-        b2.setRepeatMode(ValueAnimator.REVERSE);
-        b2.start();
+        if (!BuildConfig.WHITE_LABEL) {
+            var contentB = new ImageView(this);
+            contentB.setImageResource(R.drawable.trianguloy);
+            frame.addView(contentB);
+            var b1 = ObjectAnimator.ofFloat(contentB, "rotation", 360, 0);
+            b1.setDuration((long) (4000 + Math.random() * 2000));
+            b1.setInterpolator(null);
+            b1.setRepeatCount(ValueAnimator.INFINITE);
+            b1.start();
+            var b2 = ObjectAnimator.ofFloat(contentB, "alpha", 0, 1);
+            b2.setDuration(a2.getDuration());
+            b2.setInterpolator(null);
+            b2.setRepeatCount(ValueAnimator.INFINITE);
+            b2.setRepeatMode(ValueAnimator.REVERSE);
+            b2.start();
+        }
 
         return frame;
     }

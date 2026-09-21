@@ -5,6 +5,7 @@ import static com.trianguloy.urlchecker.utilities.methods.JavaUtils.valueOrDefau
 import android.app.Activity;
 import android.content.Context;
 
+import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.url.UrlData;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.BoolPref;
@@ -77,7 +78,7 @@ public class AutomationRules extends JsonCatalog {
                         .put("enabled", false)
                 )
                 .put(cntx.getString(R.string.auto_rule_toast), new JSONObject()
-                        .put("regex", cntx.getString(R.string.trianguloy))
+                        .put("regex", BuildConfig.WHITE_LABEL ? "example\\.com" : cntx.getString(R.string.trianguloy))
                         .put("action", "toast")
                         .put("args", new JSONObject()
                                 .put("text", "👋🙂")))
