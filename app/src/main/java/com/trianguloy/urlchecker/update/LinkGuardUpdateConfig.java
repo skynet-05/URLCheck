@@ -5,17 +5,10 @@ import com.trianguloy.urlchecker.BuildConfig;
 /**
  * OTA update convention for Link Guard (white-label builds).
  *
- * <p>GitHub releases on {@link #GITHUB_OWNER}/{@link #GITHUB_REPO} are scanned. A release qualifies if:
- * <ul>
- *   <li>Tag starts with {@link #TAG_PREFIX} (e.g. {@code linkguard-v3.5.1}), or</li>
- *   <li>Tag starts with {@code whitelabel-}, or</li>
- *   <li>Any attached APK asset name contains {@code LinkGuard} (case-insensitive).</li>
- * </ul>
+ * <p>Only GitHub releases with tag {@code linkguard-vX.Y.Z} and asset {@code LinkGuard.apk}
+ * are considered. Other tags on the fork (whitelabel, tor-sandbox, etc.) are ignored.
  *
- * <p>Preferred APK asset names: {@code LinkGuard.apk}, {@code LinkGuard-tor-debug.apk}.
- *
- * <p>Release body should include {@code versionCode: 48} (required for reliable OTA). Optional:
- * {@code versionName: 3.5.1}. If versionCode is missing, versionName from the tag is compared.
+ * <p>Release body must include {@code versionCode: N}. Optional {@code versionName: X.Y.Z}.
  */
 public final class LinkGuardUpdateConfig {
 

@@ -1,21 +1,12 @@
 package com.trianguloy.urlchecker.update;
 
-import com.trianguloy.urlchecker.modules.companions.VersionManager;
-
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.net.HttpURLConnection;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-/** Fetches and parses GitHub releases (REST API, Atom feed fallback). */
+/** Fetches Link Guard OTA releases from GitHub REST API. */
 public final class GitHubReleaseClient {
-
-    private static final Pattern VERSION_CODE = Pattern.compile("versionCode\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern VERSION_NAME = Pattern.compile("versionName\\s*:\\s*([^\\s\\n]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern TAG_CODE = Pattern.compile("(?i)^linkguard-v(\\d+)$");
 
     private GitHubReleaseClient() {
     }
@@ -41,29 +32,16 @@ public final class GitHubReleaseClient {
             if (release.optBoolean("draft", false)) continue;
 
             String tag = release.optString("tag_name", "");
-            String body = release.optString("body", "");
-            JSONObject asset = pickApkAsset(release.optJSONArray("assets"), tag);
-            if (asset == null) continue;
+            if (!LinkGuardReleaseParser.isOtaTag(tag)) continue;
 
-            int remoteCode = parseVersionCode(body, tag);
-            String remoteName = parseVersionName(body, tag);
-            if (!isNewer(remoteCode, remoteName, installedVersionCode, installedVersionName)) continue;
-
-            String url = asset.optString("browser_download_url", "");
-            if (url.isEmpty()) continue;
-
-            UpdateRelease candidate = new UpdateRelease(
-                    tag,
-                    remoteCode,
-                    remoteName,
-                    url,
-                    asset.optLong("size", 0)
-            );
-            if (best == null || candidate.versionCode > best.versionCode
-                    || (candidate.versionCode == best.versionCode
-                    && VersionManager.isVersionNewer(candidate.versionName))) {
-                best = candidate;
+            JSONObject asset = LinkGuardReleaseParser.pickLinkGuardApk(release.optJSONArray("assets"));
+            UpdateRelease candidate = LinkGuardReleaseParser.parseRelease(
+                    tag, release.optString("body", ""), asset);
+            if (candidate == null) continue;
+            if (!LinkGuardReleaseParser.isNewerThanInstalled(candidate, installedVersionCode, installedVersionName)) {
+                continue;
             }
+            best = LinkGuardReleaseParser.pickBest(best, candidate);
         }
         return best;
     }
@@ -103,62 +81,5 @@ public final class GitHubReleaseClient {
             }
         }
         return null;
-    }
-
-    private static JSONObject pickApkAsset(JSONArray assets, String tag) throws org.json.JSONException {
-        if (assets == null) return null;
-        JSONObject fallback = null;
-        for (int i = 0; i < assets.length(); i++) {
-            JSONObject asset = assets.getJSONObject(i);
-            String name = asset.optString("name", "").toLowerCase(Locale.ROOT);
-            if (!name.endsWith(".apk")) continue;
-            if (name.contains("linkguard")) return asset;
-            if (fallback == null && qualifiesByTag(tag)) fallback = asset;
-        }
-        return fallback;
-    }
-
-    private static boolean qualifiesByTag(String tag) {
-        if (tag == null) return false;
-        String lower = tag.toLowerCase(Locale.ROOT);
-        return lower.startsWith(LinkGuardUpdateConfig.TAG_PREFIX)
-                || lower.startsWith("whitelabel-")
-                || lower.startsWith("linkguard-");
-    }
-
-    private static int parseVersionCode(String body, String tag) {
-        Matcher m = VERSION_CODE.matcher(body);
-        if (m.find()) {
-            try {
-                return Integer.parseInt(m.group(1));
-            } catch (NumberFormatException ignored) {
-            }
-        }
-        if (tag != null) {
-            Matcher tagCode = TAG_CODE.matcher(tag);
-            if (tagCode.matches()) {
-                return Integer.parseInt(tagCode.group(1));
-            }
-        }
-        return -1;
-    }
-
-    private static String parseVersionName(String body, String tag) {
-        Matcher m = VERSION_NAME.matcher(body);
-        if (m.find()) return m.group(1).trim();
-        if (tag != null && tag.toLowerCase(Locale.ROOT).startsWith(LinkGuardUpdateConfig.TAG_PREFIX)) {
-            return tag.substring(LinkGuardUpdateConfig.TAG_PREFIX.length());
-        }
-        return tag != null ? tag : "";
-    }
-
-    private static boolean isNewer(int remoteCode, String remoteName, int localCode, String localName) {
-        if (remoteCode > 0) {
-            if (remoteCode > localCode) return true;
-            if (remoteCode < localCode) return false;
-        }
-        if (remoteName == null || remoteName.isEmpty()) return false;
-        if (remoteName.equals(localName)) return false;
-        return VersionManager.isVersionNewer(remoteName);
     }
 }
