@@ -5,6 +5,12 @@ on:
   push:
     tags:
       - 'linkguard-v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Existing linkguard-v* tag to rebuild (optional; default uses latest tag on this commit)'
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -14,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -27,26 +35,49 @@ jobs:
       - name: Read version from Gradle
         id: version
         run: |
-          VC=$(grep -E 'versionCode' app/build.gradle | head -1 | grep -oE '[0-9]+')
-          VN=$(grep -E 'versionName' app/build.gradle | head -1 | grep -oE '"[^"]+"' | tr -d '"')
+          VC=$(sed -n '/defaultConfig {/,/}/p' app/build.gradle | grep versionCode | grep -oE '[0-9]+' | head -1)
+          VN=$(sed -n '/defaultConfig {/,/}/p' app/build.gradle | grep versionName | grep -oE '"[^"]+"' | tr -d '"')
           echo "code=$VC" >> "$GITHUB_OUTPUT"
           echo "name=$VN" >> "$GITHUB_OUTPUT"
 
       - name: Build signed Link Guard APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${{ inputs.tag_name }}" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TAG="${GITHUB_REF_NAME}"
+          TAG="${{ steps.tag.outputs.name }}"
+          if [ -z "$TAG" ]; then
+            echo "No tag for release (workflow_dispatch needs tag_name or use push tag)."
+            exit 1
+          fi
           APK="app/build/outputs/apk/debug/LinkGuard.apk"
           test -f "$APK"
-          gh release create "$TAG" "$APK" \
-            --title "Link Guard ${TAG#linkguard-v}" \
-            --notes "versionCode: ${{ steps.version.outputs.code }}
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --clobber
+            gh release edit "$TAG" --notes "versionCode: ${{ steps.version.outputs.code }}
+          versionName: ${{ steps.version.outputs.name }}
+
+          OTA update for **Link Guard** (\`live.notonline.linkguard\`).
+          Asset: \`LinkGuard.apk\` (signed with repo \`signing/linkguard.jks\`).
+          Rebuilt by GitHub Actions run ${{ github.run_id }}."
+          else
+            gh release create "$TAG" "$APK" \
+              --title "Link Guard ${TAG#linkguard-v}" \
+              --notes "versionCode: ${{ steps.version.outputs.code }}
           versionName: ${{ steps.version.outputs.name }}
 
           OTA update for **Link Guard** (\`live.notonline.linkguard\`).
           Asset: \`LinkGuard.apk\` (signed with repo \`signing/linkguard.jks\`)." \
-            --prerelease
+              --prerelease
+          fi
