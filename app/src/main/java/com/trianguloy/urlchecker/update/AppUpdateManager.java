@@ -10,10 +10,14 @@ import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.LongPref;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.MessageDigest;
+import java.text.DateFormat;
+import java.util.Date;
 
 /** Checks GitHub for Link Guard APK updates and installs them. */
 public final class AppUpdateManager {
@@ -57,23 +61,26 @@ public final class AppUpdateManager {
 
         new Thread(() -> {
             try {
+                boolean fromCache = OtaCheckCache.hasValid(activity.getApplicationContext(), BuildConfig.VERSION_CODE);
                 UpdateRelease update = GitHubReleaseClient.findLatestUpdate(
                         activity.getApplicationContext(),
                         BuildConfig.VERSION_CODE,
                         BuildConfig.VERSION_NAME);
+                OtaUiPrefs.LAST_CHECK_AT(activity).set(System.currentTimeMillis());
+                boolean cachedResult = fromCache;
                 runOnUi(activity, () -> {
                     if (progress != null) progress.dismiss();
                     if (update == null) {
                         if (manual) {
                             new AlertDialog.Builder(activity)
-                                    .setMessage(R.string.ota_up_to_date)
+                                    .setMessage(buildUpToDateMessage(activity, cachedResult))
                                     .setPositiveButton(android.R.string.ok, null)
                                     .show();
                         }
                         if (callback != null) callback.onNoUpdate();
                         return;
                     }
-                    promptInstall(activity, update);
+                    promptInstall(activity, update, cachedResult);
                 });
             } catch (Exception e) {
                 runOnUi(activity, () -> {
@@ -91,11 +98,34 @@ public final class AppUpdateManager {
         }).start();
     }
 
-    private static void promptInstall(Activity activity, UpdateRelease update) {
+    private static String buildUpToDateMessage(Activity activity, boolean usedCache) {
+        StringBuilder sb = new StringBuilder(activity.getString(R.string.ota_up_to_date));
+        long at = OtaUiPrefs.LAST_CHECK_AT(activity).get();
+        if (at > 0) {
+            sb.append("\n\n").append(activity.getString(
+                    R.string.ota_last_check,
+                    DateFormat.getDateTimeInstance().format(new Date(at))));
+        }
+        if (usedCache) {
+            sb.append("\n").append(activity.getString(R.string.ota_cache_note));
+        }
+        return sb.toString();
+    }
+
+    private static void promptInstall(Activity activity, UpdateRelease update, boolean usedCache) {
         String message = activity.getString(
                 R.string.ota_update_available,
                 update.versionName,
                 update.versionCode > 0 ? String.valueOf(update.versionCode) : update.tagName);
+        long at = OtaUiPrefs.LAST_CHECK_AT(activity).get();
+        if (at > 0) {
+            message += "\n\n" + activity.getString(
+                    R.string.ota_last_check,
+                    DateFormat.getDateTimeInstance().format(new Date(at)));
+        }
+        if (usedCache) {
+            message += "\n" + activity.getString(R.string.ota_cache_note);
+        }
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.ota_update_title)
                 .setMessage(message)
@@ -113,6 +143,7 @@ public final class AppUpdateManager {
         new Thread(() -> {
             try {
                 File apk = downloadApk(activity, update, progress);
+                String sha256 = sha256Hex(apk);
                 runOnUi(activity, () -> {
                     progress.dismiss();
                     if (!ApkSignatureCompat.signaturesMatch(activity, apk)) {
@@ -123,7 +154,7 @@ public final class AppUpdateManager {
                                 .show();
                         return;
                     }
-                    ApkInstallHelper.install(activity, apk);
+                    confirmInstallWithSha(activity, apk, sha256);
                 });
             } catch (Exception e) {
                 runOnUi(activity, () -> {
@@ -136,6 +167,28 @@ public final class AppUpdateManager {
                 });
             }
         }).start();
+    }
+
+    private static void confirmInstallWithSha(Activity activity, File apk, String sha256) {
+        new AlertDialog.Builder(activity)
+                .setTitle(R.string.ota_install_confirm_title)
+                .setMessage(activity.getString(R.string.ota_install_confirm_message, sha256))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.ota_download_install, (d, w) -> ApkInstallHelper.install(activity, apk))
+                .show();
+    }
+
+    private static String sha256Hex(File file) throws Exception {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        try (FileInputStream in = new FileInputStream(file)) {
+            byte[] buf = new byte[8192];
+            int read;
+            while ((read = in.read(buf)) != -1) digest.update(buf, 0, read);
+        }
+        byte[] hash = digest.digest();
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hash) sb.append(String.format("%02x", b));
+        return sb.toString();
     }
 
     private static File downloadApk(Activity activity, UpdateRelease update, android.app.ProgressDialog progress) throws Exception {

@@ -13,6 +13,7 @@ import com.trianguloy.urlchecker.modules.AModuleData;
 import com.trianguloy.urlchecker.modules.AModuleDialog;
 import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.modules.DescriptionConfig;
+import com.trianguloy.urlchecker.tor.OrbotOnboarding;
 import com.trianguloy.urlchecker.tor.OrbotTorHelper;
 import com.trianguloy.urlchecker.tor.TorPreviewLauncher;
 import com.trianguloy.urlchecker.url.UrlData;
@@ -57,6 +58,7 @@ class TorPreviewDialog extends AModuleDialog {
     );
 
     private Button preview;
+    private Button newCircuit;
     private ImageView statusIcon;
     private TextView statusText;
     private View statusRow;
@@ -74,12 +76,17 @@ class TorPreviewDialog extends AModuleDialog {
     @Override
     public void onInitialize(View views) {
         preview = views.findViewById(R.id.tor_preview);
+        newCircuit = views.findViewById(R.id.tor_new_circuit_btn);
         statusIcon = views.findViewById(R.id.tor_status_icon);
         statusText = views.findViewById(R.id.tor_status_text);
         statusRow = views.findViewById(R.id.tor_status_row);
 
         preview.setOnClickListener(v -> TorPreviewLauncher.start(getActivity(), getUrl()));
-        statusRow.setOnClickListener(v -> refreshTorStatus(true));
+        newCircuit.setOnClickListener(v -> {
+            OrbotTorHelper.requestNewCircuit(getActivity());
+            android.widget.Toast.makeText(getActivity(), R.string.tor_new_circuit_sent, android.widget.Toast.LENGTH_SHORT).show();
+        });
+        statusRow.setOnClickListener(v -> onStatusTapped());
         AndroidUtils.longTapForDescription(statusRow);
 
         refreshTorStatus(false);
@@ -89,6 +96,14 @@ class TorPreviewDialog extends AModuleDialog {
     public void onDisplayUrl(UrlData urlData) {
         preview.setEnabled(urlData.url != null && !urlData.url.isBlank());
         refreshTorStatus(false);
+    }
+
+    private void onStatusTapped() {
+        if (!OrbotTorHelper.isOrbotInstalled(getActivity())) {
+            OrbotOnboarding.showMissing(getActivity());
+            return;
+        }
+        refreshTorStatus(true);
     }
 
     private void refreshTorStatus(boolean startIfOff) {
@@ -112,7 +127,10 @@ class TorPreviewDialog extends AModuleDialog {
 
                     @Override
                     public void onTorError(int messageResId) {
-                        getActivity().runOnUiThread(() -> setStatusUi(false, messageResId));
+                        getActivity().runOnUiThread(() -> {
+                            setStatusUi(false, messageResId);
+                            if (startIfOff) OrbotOnboarding.showNotReady(getActivity(), messageResId);
+                        });
                     }
                 });
     }

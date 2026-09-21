@@ -89,6 +89,10 @@ public class MainActivity extends Activity {
         PackageUtils.startActivity(new Intent(this, AboutActivity.class), R.string.toast_noApp, this);
     }
 
+    public void openClipboardCheck(View view) {
+        PackageUtils.startActivity(new Intent(this, ShortcutsActivity.class), R.string.toast_noApp, this);
+    }
+
     public void openSample(View view) {
         PackageUtils.startActivity(new Intent(Intent.ACTION_VIEW,
                 Uri.parse(getString(R.string.sample_url))

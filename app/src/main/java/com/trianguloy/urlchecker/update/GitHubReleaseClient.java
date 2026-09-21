@@ -36,7 +36,7 @@ public final class GitHubReleaseClient {
         }
 
         try {
-            UpdateRelease fromApi = findLatestFromApi(installedVersionCode, installedVersionName);
+            UpdateRelease fromApi = findLatestFromApi(context, installedVersionCode, installedVersionName);
             OtaCheckCache.put(context, installedVersionCode, fromApi);
             return fromApi;
         } catch (UpdateCheckException apiError) {
@@ -54,8 +54,8 @@ public final class GitHubReleaseClient {
                 : apiError.getMessage());
     }
 
-    private static UpdateRelease findLatestFromApi(int installedVersionCode, String installedVersionName) throws Exception {
-        JSONArray releases = fetchAllReleases();
+    private static UpdateRelease findLatestFromApi(Context context, int installedVersionCode, String installedVersionName) throws Exception {
+        JSONArray releases = fetchAllReleases(context);
         List<UpdateRelease> candidates = new ArrayList<>();
         for (int i = 0; i < releases.length(); i++) {
             JSONObject release = releases.getJSONObject(i);
@@ -72,11 +72,11 @@ public final class GitHubReleaseClient {
         return LinkGuardReleaseParser.pickNewestEligible(candidates, installedVersionCode, installedVersionName);
     }
 
-    private static JSONArray fetchAllReleases() throws Exception {
+    private static JSONArray fetchAllReleases(Context context) throws Exception {
         JSONArray all = new JSONArray();
         String url = LinkGuardUpdateConfig.RELEASES_API;
         for (int page = 0; page < 3 && url != null; page++) {
-            HttpURLConnection conn = GitHubHttp.openGet(url);
+            HttpURLConnection conn = GitHubHttp.openGet(context, url);
             int code = conn.getResponseCode();
             String body = GitHubHttp.readBody(conn);
             if (code != 200) {

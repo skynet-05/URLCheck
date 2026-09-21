@@ -1,5 +1,7 @@
 package com.trianguloy.urlchecker.update;
 
+import android.content.Context;
+
 import com.trianguloy.urlchecker.BuildConfig;
 
 import org.json.JSONObject;
@@ -24,20 +26,26 @@ final class GitHubHttp {
         return "LinkGuard/" + BuildConfig.VERSION_CODE + " (+https://github.com/skynet-05/URLCheck)";
     }
 
-    static HttpURLConnection openGet(String urlString) throws IOException {
+    static HttpURLConnection openGet(Context context, String urlString) throws IOException {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlString).openConnection();
         conn.setRequestMethod("GET");
         conn.setConnectTimeout(20_000);
         conn.setReadTimeout(30_000);
         conn.setInstanceFollowRedirects(true);
-        applyApiHeaders(conn);
+        applyApiHeaders(context, conn);
         return conn;
     }
 
-    static void applyApiHeaders(HttpURLConnection conn) {
+    static void applyApiHeaders(Context context, HttpURLConnection conn) {
         conn.setRequestProperty("User-Agent", userAgent());
         conn.setRequestProperty("Accept", "application/vnd.github+json");
         conn.setRequestProperty("X-GitHub-Api-Version", API_VERSION);
+        if (context != null) {
+            String token = GithubTokenStore.getToken(context);
+            if (token != null && !token.isEmpty()) {
+                conn.setRequestProperty("Authorization", "Bearer " + token);
+            }
+        }
     }
 
     static void applyFeedHeaders(HttpURLConnection conn) {

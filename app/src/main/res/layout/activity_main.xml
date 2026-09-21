@@ -38,6 +38,14 @@
             android:gravity="center"
             android:text="@string/txt_info" />
 
+        <Button
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/smallPadding"
+            android:onClick="openClipboardCheck"
+            android:text="@string/btn_check_clipboard" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

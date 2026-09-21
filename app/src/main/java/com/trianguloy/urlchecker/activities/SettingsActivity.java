@@ -52,9 +52,13 @@ public class SettingsActivity extends Activity {
         AndroidUtils.configureUp(this);
 
         View updateBtn = findViewById(R.id.btn_check_updates);
+        View linkGuardBtn = findViewById(R.id.btn_link_guard_settings);
         if (BuildConfig.WHITE_LABEL) {
             updateBtn.setVisibility(View.VISIBLE);
             updateBtn.setOnClickListener(v -> AppUpdateManager.checkManual(this));
+            linkGuardBtn.setVisibility(View.VISIBLE);
+            linkGuardBtn.setOnClickListener(v -> PackageUtils.startActivity(
+                    new Intent(this, LinkGuardSettingsActivity.class), R.string.toast_noApp, this));
         }
 
         configureBrowserButtons();

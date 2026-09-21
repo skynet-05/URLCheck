@@ -10,7 +10,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
 
+import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
+import com.trianguloy.urlchecker.routing.DomainRoutingHelper;
 import com.trianguloy.urlchecker.activities.ModulesActivity;
 import com.trianguloy.urlchecker.dialogs.MainDialog;
 import com.trianguloy.urlchecker.modules.AModuleConfig;
@@ -244,6 +246,15 @@ class OpenDialog extends AModuleDialog {
 
     /** Opens the url in a specific app given by component and/or package */
     private void openUrl(ComponentName component, String packageName) {
+        if (BuildConfig.WHITE_LABEL) {
+            DomainRoutingHelper.openWithRouting(getActivity(), getUrl(),
+                    () -> openUrlClearnet(component, packageName));
+            return;
+        }
+        openUrlClearnet(component, packageName);
+    }
+
+    private void openUrlClearnet(ComponentName component, String packageName) {
 
         // open
         var intent = new Intent(getActivity().getIntent());

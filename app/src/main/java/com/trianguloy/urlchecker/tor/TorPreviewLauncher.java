@@ -1,13 +1,12 @@
 package com.trianguloy.urlchecker.tor;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
-import android.net.Uri;
 import android.widget.Toast;
 
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.activities.TorPreviewActivity;
+import com.trianguloy.urlchecker.routing.DomainRoutingHelper;
 
 /**
  * Starts the Tor sandbox preview flow from the URL inspection dialog.
@@ -22,8 +21,13 @@ public final class TorPreviewLauncher {
     public static void start(Activity activity, String url) {
         if (url == null || url.isBlank()) return;
 
+        com.trianguloy.urlchecker.routing.DomainRoutingHelper.startTorPreview(activity, url);
+    }
+
+    /** Called after domain routing resolved to Tor. */
+    public static void startTorPreviewDirect(Activity activity, String url) {
         if (!OrbotTorHelper.isOrbotInstalled(activity)) {
-            showOrbotMissingDialog(activity);
+            OrbotOnboarding.showMissing(activity);
             return;
         }
 
@@ -43,22 +47,8 @@ public final class TorPreviewLauncher {
 
             @Override
             public void onTorError(int messageResId) {
-                activity.runOnUiThread(() ->
-                        Toast.makeText(activity, messageResId, Toast.LENGTH_LONG).show());
+                activity.runOnUiThread(() -> OrbotOnboarding.showNotReady(activity, messageResId));
             }
         });
-    }
-
-    private static void showOrbotMissingDialog(Activity activity) {
-        new AlertDialog.Builder(activity)
-                .setTitle(R.string.tor_orbot_missing_title)
-                .setMessage(R.string.tor_orbot_missing)
-                .setPositiveButton(R.string.tor_orbot_install, (d, w) -> {
-                    Intent market = new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("https://f-droid.org/packages/" + OrbotTorHelper.ORBOT_PACKAGE + "/"));
-                    activity.startActivity(market);
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
     }
 }

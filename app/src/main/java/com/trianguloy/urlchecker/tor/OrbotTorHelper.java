@@ -20,6 +20,7 @@ public final class OrbotTorHelper {
     public static final String ORBOT_PACKAGE = "org.torproject.android";
 
     public static final String ACTION_START = "org.torproject.android.intent.action.START";
+    public static final String ACTION_NEWNYM = "org.torproject.android.intent.action.NEWNYM";
     public static final String ACTION_STATUS = "org.torproject.android.intent.action.STATUS";
     public static final String EXTRA_STATUS = "org.torproject.android.intent.extra.STATUS";
     public static final String EXTRA_PACKAGE_NAME = "org.torproject.android.intent.extra.PACKAGE_NAME";
@@ -169,5 +170,13 @@ public final class OrbotTorHelper {
         start.setPackage(ORBOT_PACKAGE);
         start.putExtra(EXTRA_PACKAGE_NAME, context.getPackageName());
         context.sendBroadcast(start);
+    }
+
+    /** Ask Orbot to build a new Tor circuit (new identity). */
+    public static void requestNewCircuit(Context context) {
+        if (!isOrbotInstalled(context)) return;
+        Intent nym = new Intent(ACTION_NEWNYM);
+        nym.setPackage(ORBOT_PACKAGE);
+        context.sendBroadcast(nym);
     }
 }

@@ -16,4 +16,36 @@
         android:layout_gravity="center"
         android:visibility="gone" />
 
+    <LinearLayout
+        android:id="@+id/tor_error_panel"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/padding"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tor_error_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Button
+            android:id="@+id/tor_retry"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/padding"
+            android:text="@string/tor_retry" />
+
+        <Button
+            android:id="@+id/tor_retry_new_circuit"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tor_retry_new_circuit" />
+    </LinearLayout>
+
 </FrameLayout>

@@ -22,6 +22,14 @@
             android:text="@string/ota_check_button" />
 
         <Button
+            android:id="@+id/btn_link_guard_settings"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/linkguard_settings_title" />
+
+        <Button
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

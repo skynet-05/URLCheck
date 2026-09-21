@@ -7,8 +7,11 @@ import com.trianguloy.urlchecker.modules.list.ClearUrlModule;
 import com.trianguloy.urlchecker.modules.list.DebugModule;
 import com.trianguloy.urlchecker.modules.list.DrawerModule;
 import com.trianguloy.urlchecker.modules.list.FlagsModule;
+import com.trianguloy.urlchecker.modules.list.DomainRoutingModule;
 import com.trianguloy.urlchecker.modules.list.HistoryModule;
 import com.trianguloy.urlchecker.modules.list.HostsModule;
+import com.trianguloy.urlchecker.modules.list.LinkThreatModule;
+import com.trianguloy.urlchecker.modules.list.RecentLinksModule;
 import com.trianguloy.urlchecker.modules.list.LogModule;
 import com.trianguloy.urlchecker.modules.list.OpenModule;
 import com.trianguloy.urlchecker.modules.list.PatternModule;
@@ -41,6 +44,7 @@ public class ModuleManager {
 
         modules.add(new HistoryModule());
         modules.add(new StatusModule());
+        modules.add(new LinkThreatModule());
         modules.add(new UnshortenModule());
         modules.add(new VirusTotalModule());
         modules.add(new ClearUrlModule());
@@ -53,8 +57,10 @@ public class ModuleManager {
         modules.add(new FlagsModule());
         modules.add(new DebugModule());
 
+        modules.add(new DomainRoutingModule());
         modules.add(new TorPreviewModule());
         modules.add(new OpenModule());
+        modules.add(new RecentLinksModule());
         modules.add(new ChangeLogModule());
 
         // by default the drawer module should not hide other modules, so it must be the last

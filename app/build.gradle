@@ -25,8 +25,8 @@ android {
         compileSdkVersion 36
         minSdkVersion 19
         targetSdkVersion 36
-        versionCode 52
-        versionName "3.5.5"
+        versionCode 53
+        versionName "4.0.0"
         buildConfigField "boolean", "WHITE_LABEL", "false"
     }
 
@@ -96,7 +96,6 @@ dependencies {
     // WebView process-wide proxy override (API 21+ when WebView supports PROXY_OVERRIDE; required on modern Chromium WebView)
     implementation 'androidx.webkit:webkit:1.11.0'
     implementation 'androidx.core:core:1.13.1'
-
     testImplementation 'junit:junit:4.13.2'
 }
 
