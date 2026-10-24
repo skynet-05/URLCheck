@@ -26,7 +26,7 @@ import java.nio.file.Path;
 
 /** JVM-rendered previews of check-dialog sections (not a live device capture). */
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 34, qualifiers = "night-notlong-notround-any-420dpi-normal")
+@Config(sdk = 34, qualifiers = "night-xxhdpi-v34")
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class CheckDialogLayoutScreenshotTest {
 
