@@ -16,6 +16,10 @@ import android.widget.ListView;
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.history.RecentLinksStore;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
+import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
+
+import android.widget.Toast;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 import com.trianguloy.urlchecker.utilities.methods.LocaleUtils;
 
@@ -68,6 +72,9 @@ public class RecentLinksActivity extends Activity {
     }
 
     private void reload() {
+        if (!RecentLinksStore.isStorageReadable(this)) {
+            Toast.makeText(this, UserFacingErrors.historyLoadFailure(this), Toast.LENGTH_LONG).show();
+        }
         all = RecentLinksStore.list(this);
         filter("");
     }
@@ -94,9 +101,16 @@ public class RecentLinksActivity extends Activity {
         if (line == null) return;
         int idx = line.indexOf('\n');
         String url = idx >= 0 ? line.substring(idx + 1) : line;
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        intent.setPackage(getPackageName());
-        startActivity(intent);
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            intent.setPackage(getPackageName());
+            startActivity(intent);
+        } catch (Exception e) {
+            PackageUtils.startActivity(
+                    new Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+                    R.string.toast_noApp,
+                    this);
+        }
     }
 
     private boolean deleteEntry(AdapterView<?> parent, View view, int position, long id) {

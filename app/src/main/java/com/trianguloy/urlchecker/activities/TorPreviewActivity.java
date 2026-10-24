@@ -28,6 +28,7 @@ import com.trianguloy.urlchecker.tor.TorPreviewSession;
 import com.trianguloy.urlchecker.tor.TorStatusCoordinator;
 import com.trianguloy.urlchecker.tor.TorWebViewProxy;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 import com.trianguloy.urlchecker.utilities.methods.LocaleUtils;
 import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
@@ -167,7 +168,10 @@ public class TorPreviewActivity extends Activity implements TorStatusCoordinator
             @Override
             public void onReceivedError(WebView view, WebResourceRequest request, android.webkit.WebResourceError error) {
                 if (request.isForMainFrame()) {
-                    showLoadError(getString(R.string.tor_load_failed));
+                    showLoadError(UserFacingErrors.torWebViewError(
+                            TorPreviewActivity.this,
+                            error.getErrorCode(),
+                            error.getDescription()));
                 }
             }
 
@@ -194,7 +198,9 @@ public class TorPreviewActivity extends Activity implements TorStatusCoordinator
             @Override
             public void onProxyFailed() {
                 runOnUiThread(() -> {
-                    Toast.makeText(TorPreviewActivity.this, R.string.tor_proxy_failed, Toast.LENGTH_LONG).show();
+                    Toast.makeText(TorPreviewActivity.this,
+                            UserFacingErrors.torProxyFailed(TorPreviewActivity.this),
+                            Toast.LENGTH_LONG).show();
                     finish();
                 });
             }
@@ -205,7 +211,7 @@ public class TorPreviewActivity extends Activity implements TorStatusCoordinator
         cancelLoadTimeout();
         long ms = TorPreviewPrefs.LOAD_TIMEOUT_SEC(this).get() * 1000L;
         loadTimeoutRunnable = () -> {
-            if (!loadFinished) showLoadError(getString(R.string.tor_load_timeout));
+            if (!loadFinished) showLoadError(UserFacingErrors.torLoadTimeout(TorPreviewActivity.this));
         };
         handler.postDelayed(loadTimeoutRunnable, ms);
     }

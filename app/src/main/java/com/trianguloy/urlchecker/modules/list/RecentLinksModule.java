@@ -16,6 +16,9 @@ import com.trianguloy.urlchecker.modules.AModuleDialog;
 import com.trianguloy.urlchecker.modules.DescriptionConfig;
 import com.trianguloy.urlchecker.threat.LinkThreatAnalyzer;
 import com.trianguloy.urlchecker.url.UrlData;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
+
+import android.widget.Toast;
 
 /** Records checked URLs locally (retention configurable in Link Guard settings). */
 public class RecentLinksModule extends AModuleData {
@@ -47,7 +50,9 @@ public class RecentLinksModule extends AModuleData {
 
     static void recordUrl(MainDialog dialog, String url) {
         int threats = LinkThreatAnalyzer.analyze(url).size();
-        RecentLinksStore.record(dialog, url, threats);
+        if (!RecentLinksStore.record(dialog, url, threats)) {
+            Toast.makeText(dialog, UserFacingErrors.historySaveFailure(dialog), Toast.LENGTH_SHORT).show();
+        }
     }
 }
 

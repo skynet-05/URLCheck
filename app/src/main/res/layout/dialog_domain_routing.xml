@@ -2,32 +2,46 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="4dp">
 
     <TextView
         android:id="@+id/domain_route_label"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="@dimen/smallPadding" />
+        android:paddingStart="@dimen/smallPadding"
+        android:paddingEnd="@dimen/smallPadding"
+        android:paddingTop="2dp"
+        android:paddingBottom="4dp" />
 
-    <Button
-        android:id="@+id/domain_edit_rules"
-        style="?android:attr/buttonBarButtonStyle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/domain_routing_edit" />
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/domain_add_tor"
-        style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/domain_routing_add_tor" />
+        <Button
+            android:id="@+id/domain_edit_rules"
+            style="@style/ModuleActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/domain_routing_chip_edit" />
 
-    <Button
-        android:id="@+id/domain_add_clearnet"
-        style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/domain_routing_add_clearnet" />
+        <Button
+            android:id="@+id/domain_add_tor"
+            style="@style/ModuleActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/domain_routing_chip_tor" />
+
+        <Button
+            android:id="@+id/domain_add_clearnet"
+            style="@style/ModuleActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/domain_routing_chip_browser" />
+    </LinearLayout>
 </LinearLayout>

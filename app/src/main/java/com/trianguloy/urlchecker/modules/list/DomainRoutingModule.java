@@ -64,6 +64,9 @@ class DomainRoutingDialog extends AModuleDialog {
         Button tor = views.findViewById(R.id.domain_add_tor);
         Button clear = views.findViewById(R.id.domain_add_clearnet);
         Button edit = views.findViewById(R.id.domain_edit_rules);
+        edit.setContentDescription(getActivity().getString(R.string.domain_routing_edit));
+        tor.setContentDescription(getActivity().getString(R.string.domain_routing_add_tor));
+        clear.setContentDescription(getActivity().getString(R.string.domain_routing_add_clearnet));
         tor.setOnClickListener(v -> DomainRoutingHelper.addRuleQuick(getActivity(), getUrl(), DomainRouteAction.TOR));
         clear.setOnClickListener(v -> DomainRoutingHelper.addRuleQuick(getActivity(), getUrl(), DomainRouteAction.CLEARNET));
         edit.setOnClickListener(v -> new com.trianguloy.urlchecker.routing.DomainRoutingCatalog(getActivity()).showEditor());

@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.FloatPref;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 import com.trianguloy.urlchecker.utilities.methods.LocaleUtils;
@@ -154,7 +155,7 @@ public class JsonEditorActivity extends Activity {
                         // error while saving
                         new AlertDialog.Builder(this)
                                 .setTitle(R.string.invalid)
-                                .setMessage(getString(R.string.json_save_error, result))
+                                .setMessage(UserFacingErrors.jsonEditorFailure(this, result))
                                 .setPositiveButton(android.R.string.ok, null)
                                 .show();
                     }
@@ -214,7 +215,7 @@ public class JsonEditorActivity extends Activity {
             // error while saving
             new AlertDialog.Builder(this)
                     .setTitle(R.string.invalid)
-                    .setMessage(getString(R.string.json_save_error, result))
+                    .setMessage(UserFacingErrors.jsonEditorFailure(this, result))
                     .setPositiveButton(android.R.string.ok, null)
                     .show();
         }

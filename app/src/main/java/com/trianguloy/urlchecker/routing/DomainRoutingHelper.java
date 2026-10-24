@@ -5,8 +5,11 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 
+import android.widget.Toast;
+
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.tor.TorPreviewLauncher;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
 
 /** Applies domain rules when opening links. */
@@ -71,11 +74,16 @@ public final class DomainRoutingHelper {
     public static void addRuleQuick(Activity activity, String url, DomainRouteAction action) {
         try {
             String host = hostOf(url);
-            if (host == null) return;
+            if (host == null || host.isBlank()) {
+                Toast.makeText(activity, R.string.err_routing_invalid_host, Toast.LENGTH_LONG).show();
+                return;
+            }
             String pattern = host.contains(".") ? "*." + host.substring(host.indexOf('.') + 1) : host;
             DomainRoutingCatalog catalog = new DomainRoutingCatalog(activity);
             JSONObjectWrapper(catalog, pattern, action);
-        } catch (Exception ignored) {
+            Toast.makeText(activity, R.string.domain_routing_rule_saved, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(activity, UserFacingErrors.routingSaveFailure(activity, e), Toast.LENGTH_LONG).show();
         }
     }
 

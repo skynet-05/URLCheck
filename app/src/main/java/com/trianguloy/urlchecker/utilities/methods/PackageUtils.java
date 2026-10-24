@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
+
 /** Static utilities related to packages */
 public interface PackageUtils {
 
@@ -13,7 +15,7 @@ public interface PackageUtils {
         try {
             cntx.startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(cntx, toastError, Toast.LENGTH_SHORT).show();
+            Toast.makeText(cntx, toastMessage(cntx, toastError), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -22,7 +24,17 @@ public interface PackageUtils {
         try {
             cntx.startActivityForResult(intent, requestCode);
         } catch (Exception e) {
-            Toast.makeText(cntx, toastError, Toast.LENGTH_SHORT).show();
+            Toast.makeText(cntx, toastMessage(cntx, toastError), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private static String toastMessage(Context cntx, int toastError) {
+        if (toastError != 0) {
+            try {
+                return cntx.getString(toastError);
+            } catch (Exception ignored) {
+            }
+        }
+        return UserFacingErrors.noApp(cntx);
     }
 }

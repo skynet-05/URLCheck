@@ -29,6 +29,19 @@
         <item name="android:textViewStyle">@style/MyTextViewStyle</item>
     </style>
 
+    <style name="ModuleActionButton" parent="android:Widget.DeviceDefault.Button.Borderless">
+        <item name="android:minHeight">48dp</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:paddingStart">6dp</item>
+        <item name="android:paddingEnd">6dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:maxLines">2</item>
+    </style>
+
     <style name="MyTextViewStyle" parent="android:Widget.TextView">
         <!-- can't use padding, it won't be overrideable -->
         <item name="android:paddingLeft">5dp</item>

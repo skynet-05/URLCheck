@@ -29,8 +29,8 @@ public final class RecentLinksStore {
     private RecentLinksStore() {
     }
 
-    public static void record(Context context, String url, int threatFlagCount) {
-        if (!ENABLED(context).get() || url == null || url.isBlank()) return;
+    public static boolean record(Context context, String url, int threatFlagCount) {
+        if (!ENABLED(context).get() || url == null || url.isBlank()) return true;
         try {
             JSONArray arr = loadRaw(context);
             JSONArray next = new JSONArray();
@@ -45,7 +45,9 @@ public final class RecentLinksStore {
             }
             prune(context, next);
             save(context, next);
+            return true;
         } catch (JSONException ignored) {
+            return false;
         }
     }
 
@@ -62,8 +64,18 @@ public final class RecentLinksStore {
                         o.optInt("threats", 0)));
             }
         } catch (JSONException ignored) {
+            out.clear();
         }
         return out;
+    }
+
+    public static boolean isStorageReadable(Context context) {
+        try {
+            loadRaw(context);
+            return true;
+        } catch (JSONException e) {
+            return false;
+        }
     }
 
     public static void delete(Context context, String url) {

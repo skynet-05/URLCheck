@@ -61,6 +61,10 @@
     <string name="domain_routing_edit">Edit routing rules</string>
     <string name="domain_routing_add_tor">Remember: Tor for similar hosts</string>
     <string name="domain_routing_add_clearnet">Remember: browser for similar hosts</string>
+    <string name="domain_routing_chip_edit">Edit rules</string>
+    <string name="domain_routing_chip_tor">Tor for similar</string>
+    <string name="domain_routing_chip_browser">Browser for similar</string>
+    <string name="domain_routing_rule_saved">Routing rule saved for similar hosts.</string>
     <string name="domain_routing_default_label">Default for unknown hosts</string>
     <string name="mDomainRouting_name">Domain routing</string>
     <string name="mDomainRouting_desc">Per-host rules for Tor preview vs normal browser. Built-in: *.onion → Tor.</string>
@@ -185,7 +189,7 @@ Hope you find the app useful! And don't hesitate to suggest features, report bug
     <!--
         generic
     -->
-    <string name="toast_noApp">Can not open the app</string>
+    <string name="toast_noApp">@string/err_no_app</string>
     <string name="toast_noBrowser">Can not open the web browser</string>
     <string name="invalid">Invalid</string>
     <string name="save">Save</string>
@@ -205,7 +209,7 @@ Hope you find the app useful! And don't hesitate to suggest features, report bug
     <string name="next">Next</string>
     <string name="back">Back</string>
     <string name="dismiss">Dismiss</string>
-    <string name="noLinks">No links detected</string>
+    <string name="noLinks">@string/err_clipboard_no_links</string>
     <string name="small">Small</string>
     <string name="normal">Normal</string>
     <string name="big">Big</string>
@@ -377,6 +381,18 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="err_http_other">Unexpected HTTP status %1$d.</string>
     <string name="err_bad_response">Invalid response from the server.</string>
     <string name="err_unknown">Something went wrong. Try again.</string>
+    <string name="err_no_app">No app on this device can open that link.</string>
+    <string name="err_clipboard_empty">Clipboard is empty or has no text to check.</string>
+    <string name="err_clipboard_no_links">No web links found on the clipboard.</string>
+    <string name="err_history_corrupt">Could not read link history (storage may be full or damaged).</string>
+    <string name="err_history_save">Could not save this link to history.</string>
+    <string name="err_routing_save">Could not save routing rule. Check storage and try again.</string>
+    <string name="err_routing_invalid_host">Could not add a rule: this URL has no host name.</string>
+    <string name="err_tor_webview_generic">Could not load this page over Tor.</string>
+    <string name="err_tor_webview_ssl">Secure connection failed over Tor (certificate error).</string>
+    <string name="err_tor_webview_auth">Page blocked or authentication required over Tor.</string>
+    <string name="err_tor_webview_not_found">Page not found over Tor (HTTP 404).</string>
+    <string name="err_tor_webview_detail">Could not load over Tor: %1$s</string>
     <!-- -->
     <string name="mStatus_name">Status code</string>
     <string name="mStatus_desc">By pressing the check button, a network request will be made to retrieve and display the site status code. If the result is a redirection, you will be able to view the destination URL. The URL content is obtained (GET), but not evaluated, so redirections based on JavaScript won\'t be detected.</string>

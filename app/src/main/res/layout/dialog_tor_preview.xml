@@ -2,23 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingBottom="4dp">
 
     <include layout="@layout/include_tor_status_row" />
 
-    <Button
-        android:id="@+id/tor_new_circuit_btn"
-        style="?android:attr/buttonBarButtonStyle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/tor_new_circuit" />
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
-    <Button
-        android:id="@+id/tor_preview"
-        style="?android:attr/buttonBarButtonStyle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="0dp"
-        android:text="@string/mTorPreview_button" />
+        <Button
+            android:id="@+id/tor_new_circuit_btn"
+            style="@style/ModuleActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/tor_new_circuit" />
 
+        <Button
+            android:id="@+id/tor_preview"
+            style="@style/ModuleActionButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/mTorPreview_button" />
+    </LinearLayout>
 </LinearLayout>

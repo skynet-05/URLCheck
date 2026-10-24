@@ -73,10 +73,14 @@ public class ShortcutsActivity extends Activity {
     /** To run when the clipboard is available */
     private void run() {
         var links = getLinksFromClipboard();
+        if (links == null) {
+            Toast.makeText(this, R.string.err_clipboard_empty, Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
         switch (links.size()) {
             case 0:
-                // no links, notify
-                Toast.makeText(this, R.string.noLinks, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.err_clipboard_no_links, Toast.LENGTH_SHORT).show();
                 finish();
                 break;
             case 1:
@@ -111,15 +115,19 @@ public class ShortcutsActivity extends Activity {
     }
 
     /** Returns all links detected on the clipboard */
+    /** @return null if clipboard has no text; empty set if text has no links */
     private Set<String> getLinksFromClipboard() {
 
         var clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        if (clipboard == null) return Collections.emptySet();
+        if (clipboard == null) return null;
 
         var primaryClip = clipboard.getPrimaryClip();
-        if (primaryClip == null || primaryClip.getItemCount() < 1) return Collections.emptySet();
+        if (primaryClip == null || primaryClip.getItemCount() < 1) return null;
 
-        return AndroidUtils.getLinksFromText(primaryClip.getItemAt(0).coerceToText(this));
+        CharSequence text = primaryClip.getItemAt(0).coerceToText(this);
+        if (text == null || text.toString().isBlank()) return null;
+
+        return AndroidUtils.getLinksFromText(text);
     }
 
     /** The tile, just a shortcut to the activity above */
