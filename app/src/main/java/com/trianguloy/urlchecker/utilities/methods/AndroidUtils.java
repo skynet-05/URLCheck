@@ -221,10 +221,7 @@ public interface AndroidUtils {
     /** Re-anchor scroll after content size changes (e.g. white-label rows shown). */
     static void ensureScrollAtTop(android.widget.ScrollView scrollView) {
         if (scrollView == null) return;
-        scrollView.post(() -> {
-            scrollView.scrollTo(0, 0);
-            scrollView.awakenScrollBars();
-        });
+        scrollView.post(() -> scrollView.scrollTo(0, 0));
     }
 
     /** Scroll so {@code child} is visible inside {@code scrollView}. */
