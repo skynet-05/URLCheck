@@ -77,6 +77,7 @@ public class BackupActivity extends Activity {
         setContentView(R.layout.activity_backup);
         setTitle(R.string.btn_backupRestore);
         AndroidUtils.configureUp(this);
+        AndroidUtils.prepareScrollableForm(findViewById(R.id.backup_scroll));
 
         Animations.enableAnimationsRecursively(this);
 

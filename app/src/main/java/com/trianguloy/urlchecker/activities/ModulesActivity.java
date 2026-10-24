@@ -47,6 +47,7 @@ public class ModulesActivity extends Activity {
         setContentView(R.layout.activity_modules);
         setTitle(R.string.a_modules);
         AndroidUtils.configureUp(this);
+        AndroidUtils.prepareScrollableForm(findViewById(R.id.modules_scroll));
 
         list = findViewById(R.id.list);
         order = ModuleManager.ORDER_PREF(this);

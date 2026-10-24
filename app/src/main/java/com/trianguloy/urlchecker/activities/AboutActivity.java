@@ -69,6 +69,7 @@ public class AboutActivity extends Activity {
         setContentView(R.layout.activity_about);
         setTitle(R.string.a_about);
         AndroidUtils.configureUp(this);
+        AndroidUtils.prepareScrollableForm(findViewById(R.id.about_scroll));
 
         if (!BuildConfig.WHITE_LABEL) {
             setTitle(getTitle()

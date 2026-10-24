@@ -45,6 +45,7 @@ public class RecentLinksActivity extends Activity {
         setContentView(R.layout.activity_recent_links);
         setTitle(R.string.recent_links_title);
         AndroidUtils.configureUp(this);
+        AndroidUtils.applyNavigationBarInsetPadding(findViewById(R.id.recent_links_root));
 
         list = findViewById(R.id.recent_links_list);
         adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1);

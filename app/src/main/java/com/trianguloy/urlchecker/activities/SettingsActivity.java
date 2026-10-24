@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 
 import com.trianguloy.urlchecker.BuildConfig;
@@ -50,6 +51,7 @@ public class SettingsActivity extends Activity {
         setContentView(R.layout.activity_settings);
         setTitle(R.string.a_settings);
         AndroidUtils.configureUp(this);
+        AndroidUtils.prepareScrollableForm(findViewById(R.id.settings_scroll));
 
         View updateBtn = findViewById(R.id.btn_check_updates);
         View linkGuardBtn = findViewById(R.id.btn_link_guard_settings);

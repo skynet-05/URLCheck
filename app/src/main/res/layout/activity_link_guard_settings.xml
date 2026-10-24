@@ -3,9 +3,10 @@
     android:id="@+id/link_guard_settings_scroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
+    android:clipToPadding="true"
+    android:descendantFocusability="beforeDescendants"
     android:fillViewport="false"
-    android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true"
     android:scrollbars="vertical">
 
     <LinearLayout

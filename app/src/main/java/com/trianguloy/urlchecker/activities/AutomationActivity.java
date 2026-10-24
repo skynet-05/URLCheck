@@ -30,6 +30,7 @@ public class AutomationActivity extends Activity {
         setContentView(R.layout.activity_automation);
         setTitle(R.string.a_automations);
         AndroidUtils.configureUp(this);
+        AndroidUtils.prepareScrollableForm(findViewById(R.id.automation_scroll));
 
         // init rules
         rules = new AutomationRules(this);

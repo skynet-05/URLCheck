@@ -188,25 +188,34 @@ public interface AndroidUtils {
         return false;
     }
 
-    /**
-     * Ensures a {@link android.widget.ScrollView} form can scroll past the navigation bar.
-     *
-     * @param scrollView   root scroll container (should use {@code android:fitsSystemWindows="true"})
-     * @param contentChild direct scroll content (usually a vertical {@link LinearLayout})
-     */
-    static void applyScrollableFormInsets(View scrollView, View contentChild) {
-        if (scrollView == null || contentChild == null) return;
-        final int baseBottom = contentChild.getPaddingBottom();
-        ViewCompat.setOnApplyWindowInsetsListener(scrollView, (v, windowInsets) -> {
-            Insets nav = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
-            contentChild.setPadding(
-                    contentChild.getPaddingLeft(),
-                    contentChild.getPaddingTop(),
-                    contentChild.getPaddingRight(),
-                    baseBottom + nav.bottom);
+    /** Extra bottom padding so the last row clears the navigation bar (use with {@link #configureUp}). */
+    static void applyNavigationBarInsetPadding(View view) {
+        if (view == null) return;
+        final int left = view.getPaddingLeft();
+        final int top = view.getPaddingTop();
+        final int right = view.getPaddingRight();
+        final int bottom = view.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, windowInsets) -> {
+            int nav = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            v.setPadding(left, top, right, bottom + nav);
             return windowInsets;
         });
-        ViewCompat.requestApplyInsets(scrollView);
+        ViewCompat.requestApplyInsets(view);
+    }
+
+    /**
+     * Scrollable settings/forms: rely on {@link #configureUp} for the action bar / status bar;
+     * do not use {@code android:fitsSystemWindows} on the {@link android.widget.ScrollView}.
+     */
+    static void prepareScrollableForm(android.widget.ScrollView scrollView) {
+        if (scrollView == null) return;
+        scrollView.setFitsSystemWindows(false);
+        scrollView.setClipToPadding(true);
+        scrollView.setFillViewport(false);
+        scrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
+        scrollView.setFocusableInTouchMode(true);
+        applyNavigationBarInsetPadding(scrollView);
+        scrollView.post(() -> scrollView.scrollTo(0, 0));
     }
 
     /**

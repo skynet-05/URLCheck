@@ -3,8 +3,8 @@ package com.trianguloy.urlchecker.activities;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
+import android.widget.ScrollView;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -30,8 +30,8 @@ public class LinkGuardSettingsActivity extends Activity {
         setContentView(R.layout.activity_link_guard_settings);
         setTitle(R.string.linkguard_settings_title);
         AndroidUtils.configureUp(this);
-        View scroll = findViewById(R.id.link_guard_settings_scroll);
-        AndroidUtils.applyScrollableFormInsets(scroll, findViewById(R.id.link_guard_settings_content));
+        ScrollView scroll = findViewById(R.id.link_guard_settings_scroll);
+        AndroidUtils.prepareScrollableForm(scroll);
 
         TorPreviewPrefs.JAVASCRIPT(this).attachToSwitch(findViewById(R.id.tor_pref_js));
         TorPreviewPrefs.IMAGES(this).attachToSwitch(findViewById(R.id.tor_pref_images));
@@ -60,6 +60,8 @@ public class LinkGuardSettingsActivity extends Activity {
 
         EditText pat = findViewById(R.id.github_pat);
         pat.setText(GithubTokenStore.getToken(this));
+        pat.clearFocus();
+        scroll.requestFocus();
         findViewById(R.id.github_pat_save).setOnClickListener(v ->
                 GithubTokenStore.setToken(this, pat.getText().toString()));
 
