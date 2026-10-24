@@ -28,13 +28,15 @@ public class UnshortenUtility {
 
     /** Calls the unshorten api to unshorten [url]. Can be authenticated ([token]!=null) or not */
     public static UnshortenResult unshort(String url, String token) throws IOException, JSONException {
-        var http = token.isEmpty()
-                ? HttpUtils.readFromUrl("https://unshorten.me/json/" + URLEncoder.encode(url, sUTF_8))
-                : HttpUtils.readFromUrl(
-                "https://unshorten.me/api/v2/unshorten?url=" + URLEncoder.encode(url, sUTF_8),
-                Map.of(
+        String apiUrl = token.isEmpty()
+                ? "https://unshorten.me/json/" + URLEncoder.encode(url, sUTF_8)
+                : "https://unshorten.me/api/v2/unshorten?url=" + URLEncoder.encode(url, sUTF_8);
+        Map<String, String> headers = token.isEmpty()
+                ? Map.of()
+                : Map.of(
                         "Content-Type", "application/json",
-                        "Authorization", "Token " + token));
+                        "Authorization", "Token " + token);
+        Pair<Integer, String> http = HttpUtils.readFromUrl(apiUrl, headers);
 
         int httpCode = http.first;
         String body = http.second;
