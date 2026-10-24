@@ -2,6 +2,8 @@ package com.trianguloy.urlchecker.modules.companions;
 
 import static com.trianguloy.urlchecker.utilities.methods.JavaUtils.sUTF_8;
 
+import android.util.Pair;
+
 import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.methods.HttpUtils;
 
