@@ -78,11 +78,7 @@ public class SettingsActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            // press the 'back' button in the action bar to go back
-            onBackPressed();
-            return true;
-        }
+        if (AndroidUtils.onHomeUpPressed(this, item)) return true;
         return super.onOptionsItemSelected(item);
     }
 

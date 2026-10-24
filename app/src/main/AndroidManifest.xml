@@ -33,8 +33,12 @@
             android:name=".activities.TorPreviewActivity"
             android:exported="false"
             android:configChanges="orientation|screenSize" />
-        <activity android:name=".activities.LinkGuardSettingsActivity" />
-        <activity android:name=".activities.RecentLinksActivity" />
+        <activity
+            android:name=".activities.LinkGuardSettingsActivity"
+            android:parentActivityName=".activities.SettingsActivity" />
+        <activity
+            android:name=".activities.RecentLinksActivity"
+            android:parentActivityName=".activities.LinkGuardSettingsActivity" />
         <activity
             android:name=".dialogs.MainDialog"
             android:clearTaskOnLaunch="true"

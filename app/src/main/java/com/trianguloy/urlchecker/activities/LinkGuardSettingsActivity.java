@@ -2,6 +2,8 @@ package com.trianguloy.urlchecker.activities;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -28,6 +30,8 @@ public class LinkGuardSettingsActivity extends Activity {
         setContentView(R.layout.activity_link_guard_settings);
         setTitle(R.string.linkguard_settings_title);
         AndroidUtils.configureUp(this);
+        View scroll = findViewById(R.id.link_guard_settings_scroll);
+        AndroidUtils.applyScrollableFormInsets(scroll, findViewById(R.id.link_guard_settings_content));
 
         TorPreviewPrefs.JAVASCRIPT(this).attachToSwitch(findViewById(R.id.tor_pref_js));
         TorPreviewPrefs.IMAGES(this).attachToSwitch(findViewById(R.id.tor_pref_images));
@@ -61,5 +65,11 @@ public class LinkGuardSettingsActivity extends Activity {
 
         findViewById(R.id.open_recent_links).setOnClickListener(v ->
                 startActivity(new android.content.Intent(this, RecentLinksActivity.class)));
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (AndroidUtils.onHomeUpPressed(this, item)) return true;
+        return super.onOptionsItemSelected(item);
     }
 }

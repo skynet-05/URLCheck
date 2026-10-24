@@ -38,7 +38,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingBottom="@dimen/padding">
 
             <include layout="@layout/separator" />
@@ -63,7 +63,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingBottom="@dimen/padding">
 
@@ -100,14 +100,13 @@
         <SeekBar
             android:id="@+id/width_value"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:max="100"
             android:padding="@dimen/smallPadding" />
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingTop="@dimen/padding"
             android:paddingBottom="@dimen/padding">
 
@@ -116,7 +115,7 @@
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="horizontal">
 
             <TextView
@@ -133,7 +132,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingTop="@dimen/padding"
             android:paddingBottom="@dimen/padding">
 
@@ -157,7 +156,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:paddingTop="@dimen/padding">
 
             <include layout="@layout/separator" />

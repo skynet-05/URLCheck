@@ -20,6 +20,11 @@ import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -164,12 +169,44 @@ public interface AndroidUtils {
     }
 
     /**
-     * @see ActionBar#setDisplayHomeAsUpEnabled(boolean)
-     * And don't forget to override onOptionsItemSelected!
+     * Enables the action-bar Up affordance and keeps content out of system bar insets on modern Android.
+     * Pair with {@link #onHomeUpPressed(Activity, MenuItem)} from {@link Activity#onOptionsItemSelected(MenuItem)}.
      */
     static void configureUp(Activity activity) {
+        WindowCompat.setDecorFitsSystemWindows(activity.getWindow(), true);
         var actionBar = activity.getActionBar();
         if (actionBar != null) actionBar.setDisplayHomeAsUpEnabled(true);
+    }
+
+    /** Handles {@link android.R.id#home}; use at the start of {@link Activity#onOptionsItemSelected(MenuItem)}. */
+    @SuppressWarnings("deprecation")
+    static boolean onHomeUpPressed(Activity activity, MenuItem item) {
+        if (item != null && item.getItemId() == android.R.id.home) {
+            activity.onBackPressed();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Ensures a {@link android.widget.ScrollView} form can scroll past the navigation bar.
+     *
+     * @param scrollView   root scroll container (should use {@code android:fitsSystemWindows="true"})
+     * @param contentChild direct scroll content (usually a vertical {@link LinearLayout})
+     */
+    static void applyScrollableFormInsets(View scrollView, View contentChild) {
+        if (scrollView == null || contentChild == null) return;
+        final int baseBottom = contentChild.getPaddingBottom();
+        ViewCompat.setOnApplyWindowInsetsListener(scrollView, (v, windowInsets) -> {
+            Insets nav = windowInsets.getInsets(WindowInsetsCompat.Type.navigationBars());
+            contentChild.setPadding(
+                    contentChild.getPaddingLeft(),
+                    contentChild.getPaddingTop(),
+                    contentChild.getPaddingRight(),
+                    baseBottom + nav.bottom);
+            return windowInsets;
+        });
+        ViewCompat.requestApplyInsets(scrollView);
     }
 
     /**

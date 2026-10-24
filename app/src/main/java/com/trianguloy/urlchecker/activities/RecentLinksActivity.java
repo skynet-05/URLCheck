@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -69,6 +70,12 @@ public class RecentLinksActivity extends Activity {
         });
 
         reload();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (AndroidUtils.onHomeUpPressed(this, item)) return true;
+        return super.onOptionsItemSelected(item);
     }
 
     private void reload() {

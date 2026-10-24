@@ -277,6 +277,7 @@ public class TorPreviewActivity extends Activity implements TorStatusCoordinator
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        if (AndroidUtils.onHomeUpPressed(this, item)) return true;
         int id = item.getItemId();
         if (id == R.id.tor_open_browser) {
             openInNormalBrowser();
