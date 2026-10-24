@@ -12,26 +12,12 @@
     tools:context=".activities.SettingsActivity">
 
     <LinearLayout
+        android:id="@+id/settings_content"
         android:layout_width="match_parent"
-        android:padding="@dimen/smallPadding"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <Button
-            android:id="@+id/btn_check_updates"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/ota_check_button" />
-
-        <Button
-            android:id="@+id/btn_link_guard_settings"
-            style="?android:attr/buttonBarButtonStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="@string/linkguard_settings_title" />
+        android:orientation="vertical"
+        android:padding="@dimen/smallPadding"
+        android:paddingBottom="@dimen/padding">
 
         <Button
             style="?android:attr/buttonBarButtonStyle"
@@ -172,6 +158,22 @@
             android:layout_height="wrap_content"
             android:onClick="openBackup"
             android:text="@string/btn_backupRestore" />
+
+        <Button
+            android:id="@+id/btn_check_updates"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/ota_check_button" />
+
+        <Button
+            android:id="@+id/btn_link_guard_settings"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/linkguard_settings_title" />
 
     </LinearLayout>
 

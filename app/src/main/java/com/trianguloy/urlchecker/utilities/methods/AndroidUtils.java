@@ -215,7 +215,32 @@ public interface AndroidUtils {
         scrollView.setDescendantFocusability(ViewGroup.FOCUS_BEFORE_DESCENDANTS);
         scrollView.setFocusableInTouchMode(true);
         applyNavigationBarInsetPadding(scrollView);
-        scrollView.post(() -> scrollView.scrollTo(0, 0));
+        ensureScrollAtTop(scrollView);
+    }
+
+    /** Re-anchor scroll after content size changes (e.g. white-label rows shown). */
+    static void ensureScrollAtTop(android.widget.ScrollView scrollView) {
+        if (scrollView == null) return;
+        scrollView.post(() -> {
+            scrollView.scrollTo(0, 0);
+            scrollView.awakenScrollBars();
+        });
+    }
+
+    /** Scroll so {@code child} is visible inside {@code scrollView}. */
+    static void scrollToShowChild(android.widget.ScrollView scrollView, View child) {
+        if (scrollView == null || child == null) return;
+        scrollView.post(() -> {
+            int childTop = child.getTop();
+            int childBottom = child.getBottom();
+            int scrollY = scrollView.getScrollY();
+            int height = scrollView.getHeight() - scrollView.getPaddingBottom() - scrollView.getPaddingTop();
+            if (childTop < scrollY) {
+                scrollView.smoothScrollTo(0, childTop);
+            } else if (childBottom > scrollY + height) {
+                scrollView.smoothScrollTo(0, childBottom - height);
+            }
+        });
     }
 
     /**

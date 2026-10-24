@@ -55,12 +55,19 @@ public class SettingsActivity extends Activity {
 
         View updateBtn = findViewById(R.id.btn_check_updates);
         View linkGuardBtn = findViewById(R.id.btn_link_guard_settings);
+        ScrollView settingsScroll = findViewById(R.id.settings_scroll);
         if (BuildConfig.WHITE_LABEL) {
             updateBtn.setVisibility(View.VISIBLE);
             updateBtn.setOnClickListener(v -> AppUpdateManager.checkManual(this));
             linkGuardBtn.setVisibility(View.VISIBLE);
             linkGuardBtn.setOnClickListener(v -> PackageUtils.startActivity(
                     new Intent(this, LinkGuardSettingsActivity.class), R.string.toast_noApp, this));
+            settingsScroll.post(() -> {
+                settingsScroll.fullScroll(View.FOCUS_DOWN);
+                AndroidUtils.scrollToShowChild(settingsScroll, linkGuardBtn);
+            });
+        } else {
+            AndroidUtils.ensureScrollAtTop(settingsScroll);
         }
 
         configureBrowserButtons();
