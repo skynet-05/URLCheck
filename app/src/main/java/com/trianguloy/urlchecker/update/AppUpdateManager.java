@@ -7,6 +7,7 @@ import android.os.Looper;
 
 import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.LongPref;
 
 import java.io.File;
@@ -88,11 +89,12 @@ public final class AppUpdateManager {
                     if (manual) {
                         new AlertDialog.Builder(activity)
                                 .setTitle(R.string.ota_error_title)
-                                .setMessage(activity.getString(R.string.ota_error_message, e.getMessage()))
+                                .setMessage(activity.getString(R.string.ota_error_message,
+                                        UserFacingErrors.otaFailure(activity, e)))
                                 .setPositiveButton(android.R.string.ok, null)
                                 .show();
                     }
-                    if (callback != null) callback.onError(e.getMessage());
+                    if (callback != null) callback.onError(UserFacingErrors.otaFailure(activity, e));
                 });
             }
         }).start();
@@ -161,7 +163,8 @@ public final class AppUpdateManager {
                     progress.dismiss();
                     new AlertDialog.Builder(activity)
                             .setTitle(R.string.ota_error_title)
-                            .setMessage(activity.getString(R.string.ota_error_message, e.getMessage()))
+                            .setMessage(activity.getString(R.string.ota_error_message,
+                                    UserFacingErrors.otaFailure(activity, e)))
                             .setPositiveButton(android.R.string.ok, null)
                             .show();
                 });
@@ -204,8 +207,9 @@ public final class AppUpdateManager {
         conn.setReadTimeout(120_000);
         conn.setInstanceFollowRedirects(true);
         GitHubHttp.applyDownloadHeaders(conn);
-        if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-            throw new Exception("Download HTTP " + conn.getResponseCode());
+        int responseCode = conn.getResponseCode();
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            throw new Exception(UserFacingErrors.downloadFailure(activity, responseCode));
         }
 
         int total = conn.getContentLength();

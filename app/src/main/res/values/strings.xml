@@ -358,8 +358,25 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="mOpen_copyUrl">Copy</string>
     <string name="mOpen_clipboard">URL copied to clipboard</string>
     <string name="mOpen_noapps">No apps</string>
-    <string name="mOpen_tabsDesc">Toggle Custom Tabs feature</string>
-    <string name="mOpen_incognitoDesc">Toggle incognito mode (for Firefox only)</string>
+    <string name="mOpen_tabsDesc">Custom Tabs: in-app browser bar when on; full browser app when off</string>
+    <string name="mOpen_ctabs_off_desc">Custom Tabs off — opens in full browser (recommended)</string>
+    <string name="mOpen_ctabs_on_desc">Custom Tabs on — opens in browser’s lightweight in-app bar</string>
+    <string name="mOpen_incognitoDesc">Private browsing (Firefox): off = normal browser tab</string>
+    <string name="mOpen_incognito_off_desc">Private browsing off — normal browser tab</string>
+    <string name="mOpen_incognito_on_desc">Private browsing on — Firefox private tab</string>
+    <string name="err_network_timeout">Connection timed out. Check network or try again.</string>
+    <string name="err_network_dns">Could not resolve host (DNS failure).</string>
+    <string name="err_network_connect">Could not connect to the server.</string>
+    <string name="err_network_ssl">Secure connection failed (certificate or SSL error).</string>
+    <string name="err_network_generic">Network error: %1$s</string>
+    <string name="err_http_429">Too many requests (HTTP 429). Try again later.</string>
+    <string name="err_http_auth">Access denied (HTTP %1$d).</string>
+    <string name="err_http_server">Server error (HTTP %1$d).</string>
+    <string name="err_http_404">Not found (HTTP 404).</string>
+    <string name="err_http_client">Request rejected (HTTP %1$d).</string>
+    <string name="err_http_other">Unexpected HTTP status %1$d.</string>
+    <string name="err_bad_response">Invalid response from the server.</string>
+    <string name="err_unknown">Something went wrong. Try again.</string>
     <!-- -->
     <string name="mStatus_name">Status code</string>
     <string name="mStatus_desc">By pressing the check button, a network request will be made to retrieve and display the site status code. If the result is a redirection, you will be able to view the destination URL. The URL content is obtained (GET), but not evaluated, so redirections based on JavaScript won\'t be detected.</string>
@@ -519,6 +536,8 @@ If you provide a valid token the module will use the authenticated endpoint inst
     <string name="mUnshort_tm">unshorten.me free API by Unshorten.me</string>
     <string name="mUnshort_checking">Checking…</string>
     <string name="mUnshort_error">Server error: %s</string>
+    <string name="mUnshort_error_fmt">%1$s</string>
+    <string name="mUnshort_not_shortened">This link is not a shortened URL — nothing to expand.</string>
     <string name="mUnshort_internal">Internal error (%s)</string>
     <string name="mUnshort_to">Unshortens to %s</string>
     <string name="mUnshort_notFound">No unshorted url found</string>

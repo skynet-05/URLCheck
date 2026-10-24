@@ -2,6 +2,7 @@ package com.trianguloy.urlchecker.modules.companions;
 
 import static com.trianguloy.urlchecker.utilities.methods.JavaUtils.sUTF_8;
 
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.methods.HttpUtils;
 
 import org.json.JSONException;
@@ -18,43 +19,66 @@ public class UnshortenUtility {
             String error,
             String finalUrl,
             int remainingCalls,
-            int usageLimit
+            int usageLimit,
+            boolean notShortened
     ) {
     }
 
     /** Calls the unshorten api to unshorten [url]. Can be authenticated ([token]!=null) or not */
     public static UnshortenResult unshort(String url, String token) throws IOException, JSONException {
-        // get response
-        var response = new JSONObject(token.isEmpty()
-                // unauthenticated request (technically not a public api)
+        var http = token.isEmpty()
                 ? HttpUtils.readFromUrl("https://unshorten.me/json/" + URLEncoder.encode(url, sUTF_8))
-                // authenticated request with public api
-                : HttpUtils.readFromUrl("https://unshorten.me/api/v2/unshorten?url=" + URLEncoder.encode(url, sUTF_8), Map.of(
-                "Content-Type", "application/json",
-                "Authorization", "Token " + token)).second
-        );
+                : HttpUtils.readFromUrl(
+                "https://unshorten.me/api/v2/unshorten?url=" + URLEncoder.encode(url, sUTF_8),
+                Map.of(
+                        "Content-Type", "application/json",
+                        "Authorization", "Token " + token));
 
-        var finalUrl = response.getString(token.isEmpty() ? "resolved_url" : "unshortened_url");
+        int httpCode = http.first;
+        String body = http.second;
+
+        if (httpCode < 200 || httpCode >= 300) {
+            return failure("http:" + httpCode, url, 0, 10, false);
+        }
+
+        var response = new JSONObject(body);
+
+        var finalUrl = response.optString(token.isEmpty() ? "resolved_url" : "unshortened_url", "");
         var usageCount = Integer.parseInt(response.optString("usage_count", "0"));
-        int usageLimit = 10; // documented but hardcoded
+        int usageLimit = 10;
         int remainingCalls = usageLimit - usageCount;
-        var error = response.optString("error", response.toString());
-        var success = response.getBoolean("success");
+        var error = response.optString("error", "");
+        var success = response.optBoolean("success", false);
+        String requested = response.optString("requested_url", url);
 
-        // remaining_calls is not documented, but if it's present use it and replace the hardcoded usage_limit
         try {
             remainingCalls = Integer.parseInt(response.optString("remaining_calls", ""));
             usageLimit = usageCount + remainingCalls;
         } catch (NumberFormatException ignore) {
-            // not present, ignore
+        }
+
+        if (!success) {
+            if (finalUrl.isEmpty() || UserFacingErrors.isNotShortened(error, requested)) {
+                return new UnshortenResult(true, null, url, remainingCalls, usageLimit, true);
+            }
+            return failure(error.isEmpty() ? "api" : error, url, remainingCalls, usageLimit, false);
+        }
+
+        if (finalUrl.isEmpty()) {
+            finalUrl = url;
         }
 
         return new UnshortenResult(
-                success,
-                error,
+                true,
+                null,
                 finalUrl,
                 remainingCalls,
-                usageLimit
+                usageLimit,
+                finalUrl.equals(url) || finalUrl.equals(requested)
         );
+    }
+
+    private static UnshortenResult failure(String error, String url, int remaining, int limit, boolean notShortened) {
+        return new UnshortenResult(false, error, url, remaining, limit, notShortened);
     }
 }

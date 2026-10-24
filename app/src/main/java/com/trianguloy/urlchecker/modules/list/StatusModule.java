@@ -18,6 +18,7 @@ import com.trianguloy.urlchecker.modules.AModuleDialog;
 import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.url.UrlData;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.BoolPref;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 import com.trianguloy.urlchecker.utilities.methods.HttpUtils;
 
@@ -200,13 +201,13 @@ class StatusDialog extends AModuleDialog {
                 redirectionUrl = new URL(new URL(url), location).toExternalForm(); // Deal with relative URLs
             }
         } catch (IOException e) {
-            // io error
             AndroidUtils.assertError("Network error while checking url", e);
-            message = getActivity().getString(R.string.mStatus_ioerror, e.getMessage());
+            message = getActivity().getString(R.string.mStatus_ioerror,
+                    UserFacingErrors.networkError(getActivity(), e));
         } catch (Exception e) {
-            // other error
             AndroidUtils.assertError("Unknown exception while checking url", e);
-            message = getActivity().getString(R.string.mStatus_error, e.getMessage());
+            message = getActivity().getString(R.string.mStatus_error,
+                    UserFacingErrors.otaFailure(getActivity(), e));
         } finally {
             if (conn != null) {
                 conn.disconnect();

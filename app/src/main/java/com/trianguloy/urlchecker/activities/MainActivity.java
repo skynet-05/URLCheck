@@ -16,6 +16,7 @@ import com.trianguloy.urlchecker.modules.companions.VersionManager;
 import com.trianguloy.urlchecker.utilities.AndroidSettings;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 import com.trianguloy.urlchecker.utilities.methods.LocaleUtils;
+import com.trianguloy.urlchecker.linkguard.LinkGuardOpenDefaults;
 import com.trianguloy.urlchecker.update.AppUpdateManager;
 import com.trianguloy.urlchecker.utilities.methods.PackageUtils;
 
@@ -40,6 +41,7 @@ public class MainActivity extends Activity {
         }
 
         if (BuildConfig.WHITE_LABEL) {
+            LinkGuardOpenDefaults.applyIfNeeded(this);
             AppUpdateManager.checkOnLaunch(this);
         }
     }

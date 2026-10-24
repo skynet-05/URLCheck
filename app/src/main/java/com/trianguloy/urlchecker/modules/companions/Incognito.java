@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.ImageButton;
 
+import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.EnumerationPref;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
@@ -59,6 +60,10 @@ public class Incognito {
     public void setState(boolean state) {
         this.state = state;
         button.setImageResource(state ? R.drawable.incognito : R.drawable.no_incognito);
+        if (BuildConfig.WHITE_LABEL) {
+            int desc = state ? R.string.mOpen_incognito_on_desc : R.string.mOpen_incognito_off_desc;
+            button.setContentDescription(button.getContext().getString(desc));
+        }
     }
 
     /** applies the setting to a given intent */

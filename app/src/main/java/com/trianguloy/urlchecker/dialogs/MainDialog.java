@@ -26,6 +26,7 @@ import com.trianguloy.urlchecker.modules.AModuleData;
 import com.trianguloy.urlchecker.modules.AModuleDialog;
 import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.modules.ModuleManager;
+import com.trianguloy.urlchecker.linkguard.LinkGuardOpenDefaults;
 import com.trianguloy.urlchecker.modules.companions.VersionManager;
 import com.trianguloy.urlchecker.modules.list.DrawerModule;
 import com.trianguloy.urlchecker.url.UrlData;
@@ -221,6 +222,9 @@ public class MainDialog extends Activity {
 
         // mark as seen if required
         VersionManager.check(this);
+        if (BuildConfig.WHITE_LABEL) {
+            LinkGuardOpenDefaults.applyIfNeeded(this);
+        }
 
         // get views
         ll_main = findViewById(R.id.main);

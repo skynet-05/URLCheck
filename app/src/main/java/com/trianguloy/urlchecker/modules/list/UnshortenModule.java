@@ -20,6 +20,7 @@ import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.modules.companions.UnshortenUtility;
 import com.trianguloy.urlchecker.url.UrlData;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref;
+import com.trianguloy.urlchecker.utilities.UserFacingErrors;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 
 import org.json.JSONException;
@@ -164,17 +165,23 @@ class UnshortenDialog extends AModuleDialog {
             }
 
             if (!result.success()) {
-                // server error, maybe too many checks
                 getActivity().runOnUiThread(() -> {
-                    info.setText(getActivity().getString(R.string.mUnshort_error, result.error()));
+                    int httpCode = 0;
+                    String err = result.error();
+                    if (err != null && err.startsWith("http:")) {
+                        try {
+                            httpCode = Integer.parseInt(err.substring(5));
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                    info.setText(UserFacingErrors.unshortApiError(
+                            getActivity(), httpCode, err, getUrl()));
                     AndroidUtils.setRoundedColor(R.color.warning, info);
-                    // allow retries
                     unshort.setEnabled(true);
                 });
-            } else if (Objects.equals(result.finalUrl(), getUrl())) {
-                // same, nothing to replace
+            } else if (result.notShortened() || Objects.equals(result.finalUrl(), getUrl())) {
                 getActivity().runOnUiThread(() -> {
-                    info.setText(getActivity().getString(R.string.mUnshort_notFound));
+                    info.setText(getActivity().getString(R.string.mUnshort_not_shortened));
                     if (result.remainingCalls() <= result.usageLimit() / 2)
                         info.append(" (" + getActivity().getString(R.string.mUnshort_pending, result.remainingCalls(), result.usageLimit()) + ")");
                     AndroidUtils.clearRoundedColor(info);
@@ -199,18 +206,22 @@ class UnshortenDialog extends AModuleDialog {
                 });
             }
 
-        } catch (IOException | JSONException e) {
-            // internal error
+        } catch (IOException e) {
             AndroidUtils.assertError("Unable to unshorten url", e);
-
-            // exit if was canceled
-            if (Thread.currentThread().isInterrupted()) {
-                Log.d("THREAD", "Interrupted");
-                return;
-            }
-
+            if (Thread.currentThread().isInterrupted()) return;
             getActivity().runOnUiThread(() -> {
-                info.setText(getActivity().getString(R.string.mUnshort_internal, e.getMessage()));
+                info.setText(getActivity().getString(
+                        R.string.mUnshort_error_fmt,
+                        UserFacingErrors.networkError(getActivity(), e)));
+                AndroidUtils.setRoundedColor(R.color.bad, info);
+                unshort.setEnabled(true);
+            });
+        } catch (JSONException e) {
+            AndroidUtils.assertError("Unable to parse unshorten response", e);
+            if (Thread.currentThread().isInterrupted()) return;
+            getActivity().runOnUiThread(() -> {
+                info.setText(getActivity().getString(R.string.mUnshort_error_fmt,
+                        getActivity().getString(R.string.err_bad_response)));
                 AndroidUtils.setRoundedColor(R.color.bad, info);
                 unshort.setEnabled(true);
             });
