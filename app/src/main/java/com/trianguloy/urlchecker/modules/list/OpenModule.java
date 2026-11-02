@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.R;
@@ -271,8 +272,14 @@ class OpenDialog extends AModuleDialog {
         // ctabs
         cTabs.apply(intent);
 
-        // incognito
-        incognito.apply(intent);
+        // incognito (after Custom Tabs session extra is applied)
+        if (!incognito.apply(intent) && incognito.isOn()) {
+            String label = browserLabelFor(component, packageName);
+            Toast.makeText(getActivity(),
+                    getActivity().getString(R.string.incognito_unsupported, label),
+                    Toast.LENGTH_LONG).show();
+            return;
+        }
 
         // apply flags from global data (probably set by flags module, if active) or by default
         Flags.applyGlobalFlags(intent, this);
@@ -292,6 +299,26 @@ class OpenDialog extends AModuleDialog {
     /** Show the popup with the rest of the apps */
     private void showList() {
         popup.show();
+    }
+
+    private String browserLabelFor(ComponentName component, String packageName) {
+        if (component != null) {
+            for (var ri : intentApps) {
+                if (Objects.equals(ri.getComponent(), component)) {
+                    return ri.getLabel(getActivity());
+                }
+            }
+            packageName = component.getPackageName();
+        }
+        if (packageName != null) {
+            try {
+                var pm = getActivity().getPackageManager();
+                return pm.getApplicationLabel(pm.getApplicationInfo(packageName, 0)).toString();
+            } catch (Exception ignored) {
+                return packageName;
+            }
+        }
+        return getActivity().getString(R.string.mOpen_open);
     }
 
 }

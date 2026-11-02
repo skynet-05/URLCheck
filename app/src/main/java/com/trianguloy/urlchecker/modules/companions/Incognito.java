@@ -10,71 +10,71 @@ import com.trianguloy.urlchecker.R;
 import com.trianguloy.urlchecker.utilities.generics.GenericPref.EnumerationPref;
 import com.trianguloy.urlchecker.utilities.methods.AndroidUtils;
 
-/** Manages the incognito feature */
+/** Manages the incognito / private-browsing toggle on the open bar. */
 public class Incognito {
 
-    public static final String FIREFOX_EXTRA = "private_browsing_mode";
-    // for Chrome with custom tabs (even though it doesn't work for now)
-    public static final String CHROME_EXTRA = "com.google.android.apps.chrome.EXTRA_OPEN_NEW_INCOGNITO_TAB";
+    public static final String FIREFOX_EXTRA = IncognitoIntentHelper.FIREFOX_EXTRA;
+    public static final String CHROME_EXTRA = IncognitoIntentHelper.CHROME_EXTRA;
 
     public static EnumerationPref<OnOffConfig> PREF(Context cntx) {
         return new EnumerationPref<>("open_incognito", OnOffConfig.AUTO, OnOffConfig.class, cntx);
     }
 
+    private final Context context;
     private final EnumerationPref<OnOffConfig> pref;
     private boolean state = false;
     private ImageButton button;
 
     public Incognito(Context cntx) {
+        this.context = cntx;
         this.pref = PREF(cntx);
     }
 
     /** Initialization from a given intent and a button to toggle */
     public void initFrom(Intent intent, ImageButton button) {
         this.button = button;
-        // init state
         state = switch (pref.get()) {
             case DEFAULT_ON, ALWAYS_ON -> true;
             case DEFAULT_OFF, ALWAYS_OFF -> false;
-            case HIDDEN, AUTO -> isIncognito(intent);
+            case HIDDEN, AUTO -> IncognitoIntentHelper.isIncognitoRequested(intent);
         };
 
-        // init button
         boolean visible = switch (pref.get()) {
             case ALWAYS_ON, ALWAYS_OFF, HIDDEN -> false;
             case DEFAULT_ON, DEFAULT_OFF, AUTO -> true;
         };
         if (visible) {
-            // show and configure
             button.setVisibility(View.VISIBLE);
             AndroidUtils.longTapForDescription(button);
             button.setOnClickListener(v1 -> setState(!state));
             setState(state);
         } else {
-            // hide
             button.setVisibility(View.GONE);
         }
     }
 
-    /** Sets the incognito state */
+    public boolean isOn() {
+        return state;
+    }
+
+    /** Sets the incognito state and updates the toggle affordance. */
     public void setState(boolean state) {
         this.state = state;
         button.setImageResource(state ? R.drawable.incognito : R.drawable.no_incognito);
+        button.setAlpha(state ? 1f : 0.55f);
+        button.setSelected(state);
         if (BuildConfig.WHITE_LABEL) {
-            int desc = state ? R.string.mOpen_incognito_on_desc : R.string.mOpen_incognito_off_desc;
-            button.setContentDescription(button.getContext().getString(desc));
+            button.setContentDescription(context.getString(
+                    state ? R.string.mOpen_incognito_on_desc : R.string.mOpen_incognito_off_desc));
         }
     }
 
-    /** applies the setting to a given intent */
-    public void apply(Intent intent) {
-        intent.putExtra(FIREFOX_EXTRA, state);
-        intent.putExtra(CHROME_EXTRA, state);
-    }
-
-    /** true iff the intent has at least one incognito extra */
-    private boolean isIncognito(Intent intent) {
-        return intent.getBooleanExtra(FIREFOX_EXTRA, false)
-                || intent.getBooleanExtra(CHROME_EXTRA, false);
+    /**
+     * Applies private-browsing extras for the resolved target browser.
+     *
+     * @return true if incognito was off, or the target browser supports private mode
+     */
+    public boolean apply(Intent intent) {
+        return IncognitoIntentHelper.applyIncognitoExtras(intent, state);
     }
 }

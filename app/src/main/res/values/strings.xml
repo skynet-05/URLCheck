@@ -342,7 +342,7 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="mOpen_name">Open and share</string>
     <string name="mOpen_desc">"Contains the following buttons (left to right):
 - Custom Tabs button: toggle to enable/disable the custom tab feature. When enabled, the browser should be opened in a 'lite' mode.
-- Incognito button: For Firefox only. Toggle to enable/disable the incognito mode. When enabled, the browser should be opened in incognito.
+- Incognito button: Toggle private browsing for supported browsers (Firefox, Chrome, Samsung Internet, Brave, Edge). When on, the link opens in private/incognito mode when the browser supports it.
 - Open button: Press the app name to open the link on that app. If a link can be opened with multiple apps, an arrow will be shown to let you choose.
 - Copy button: Press the button to copy the link into the clipboard.
 - Share button: Press the button to share the link."</string>
@@ -365,9 +365,10 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="mOpen_tabsDesc">Custom Tabs: in-app browser bar when on; full browser app when off</string>
     <string name="mOpen_ctabs_off_desc">Custom Tabs off — opens in full browser (recommended)</string>
     <string name="mOpen_ctabs_on_desc">Custom Tabs on — opens in browser’s lightweight in-app bar</string>
-    <string name="mOpen_incognitoDesc">Private browsing (Firefox): off = normal browser tab</string>
+    <string name="mOpen_incognitoDesc">Private browsing: off = normal browser tab</string>
     <string name="mOpen_incognito_off_desc">Private browsing off — normal browser tab</string>
-    <string name="mOpen_incognito_on_desc">Private browsing on — Firefox private tab</string>
+    <string name="mOpen_incognito_on_desc">Private browsing on — opens in private/incognito mode</string>
+    <string name="incognito_unsupported">Private browsing is not supported for %1$s. Turn off private browsing or choose another browser.</string>
     <string name="err_network_timeout">Connection timed out. Check network or try again.</string>
     <string name="err_network_dns">Could not resolve host (DNS failure).</string>
     <string name="err_network_connect">Could not connect to the server.</string>

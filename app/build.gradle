@@ -25,8 +25,8 @@ android {
         compileSdkVersion 36
         minSdkVersion 19
         targetSdkVersion 36
-        versionCode 59
-        versionName "4.0.6"
+        versionCode 60
+        versionName "4.0.7"
         buildConfigField "boolean", "WHITE_LABEL", "false"
     }
 
