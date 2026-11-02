@@ -41,6 +41,8 @@ public final class IncognitoIntentHelper {
         if ("com.android.chrome".equals(packageName)
                 || "com.google.android.apps.chrome".equals(packageName)
                 || "com.brave.browser".equals(packageName)
+                || "com.brave.browser_beta".equals(packageName)
+                || "com.brave.browser_nightly".equals(packageName)
                 || "com.chrome.beta".equals(packageName)
                 || "com.chrome.dev".equals(packageName)
                 || "com.chrome.canary".equals(packageName)) {

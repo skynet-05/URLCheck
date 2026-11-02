@@ -22,6 +22,7 @@ import com.trianguloy.urlchecker.modules.AModuleDialog;
 import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.modules.companions.CTabs;
 import com.trianguloy.urlchecker.modules.companions.Flags;
+import com.trianguloy.urlchecker.modules.companions.BravePrivateTabHelper;
 import com.trianguloy.urlchecker.modules.companions.Incognito;
 import com.trianguloy.urlchecker.modules.companions.IncognitoIntentHelper;
 import com.trianguloy.urlchecker.modules.companions.LastOpened;
@@ -275,6 +276,15 @@ class OpenDialog extends AModuleDialog {
         cTabs.apply(intent);
 
         if (incognito.isOn()) {
+            String targetPkg = packageName;
+            if (targetPkg == null && component != null) targetPkg = component.getPackageName();
+            if (PrivateLinkBrowser.useBraveCopyFlow(getActivity(), targetPkg)) {
+                handleBravePrivateLinkFlow(targetPkg);
+                return;
+            }
+        }
+
+        if (incognito.isOn()) {
             retargetForPrivateBrowsing(intent, component, packageName);
             component = intent.getComponent();
             packageName = intent.getPackage();
@@ -318,7 +328,7 @@ class OpenDialog extends AModuleDialog {
         if (targetPkg == null && component != null) targetPkg = component.getPackageName();
         if (IncognitoIntentHelper.supportsThirdPartyPrivateMode(targetPkg)) return;
 
-        String redirect = PrivateLinkBrowser.resolveInstalledPrivateBrowser(getActivity());
+        String redirect = PrivateLinkBrowser.resolveFirefoxRedirect(getActivity());
         if (redirect.isEmpty()) return;
 
         IncognitoIntentHelper.stripCustomTabsSession(intent);
@@ -328,6 +338,20 @@ class OpenDialog extends AModuleDialog {
         }
         intent.setComponent(redirectComponent);
         intent.setPackage(redirect);
+    }
+
+    private void handleBravePrivateLinkFlow(String bravePackage) {
+        String url = getUrl();
+        BravePrivateTabHelper.copyUrlSensitive(getActivity(), url);
+        boolean launched = BravePrivateTabHelper.tryLaunchNewPrivateTab(getActivity(), bravePackage);
+        Toast.makeText(getActivity(),
+                getActivity().getString(launched
+                        ? R.string.brave_private_paste_launch_ok
+                        : R.string.brave_private_paste_manual),
+                Toast.LENGTH_LONG).show();
+        if (closeOpenPref.get()) {
+            getActivity().finish();
+        }
     }
 
     private ComponentName findComponentForPackage(String pkg) {

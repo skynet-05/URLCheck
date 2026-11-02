@@ -13,10 +13,12 @@ import com.trianguloy.urlchecker.utilities.generics.GenericPref.StringPref;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Browser used when private browsing is on but the app chosen on the open bar cannot open private tabs. */
+/** Fallback when the open-bar browser cannot open a private tab from a third-party app. */
 public final class PrivateLinkBrowser {
 
     public static final String PKG_FIREFOX = "org.mozilla.firefox";
+    /** Pref value: copy URL and guide user to paste in Brave private tab. */
+    public static final String MODE_BRAVE_COPY = "__brave_copy_private__";
 
     private PrivateLinkBrowser() {
     }
@@ -35,16 +37,25 @@ public final class PrivateLinkBrowser {
         }
     }
 
-    /** First supported private browser installed, preferring the saved pref then Firefox. */
-    public static String resolveInstalledPrivateBrowser(Context context) {
+    /** Firefox redirect when explicit Firefox mode is selected and installed. */
+    public static String resolveFirefoxRedirect(Context context) {
         String saved = PREF(context).get();
-        if (saved != null && !saved.isEmpty()
-                && isInstalled(context, saved)
-                && IncognitoIntentHelper.supportsThirdPartyPrivateMode(saved)) {
-            return saved;
+        if (PKG_FIREFOX.equals(saved) && isInstalled(context, PKG_FIREFOX)) {
+            return PKG_FIREFOX;
         }
-        if (isInstalled(context, PKG_FIREFOX)) return PKG_FIREFOX;
         return "";
+    }
+
+    /**
+     * Copy+paste Brave flow when private browsing is on and the user opens with Brave,
+     * unless they explicitly chose Firefox in settings.
+     */
+    public static boolean useBraveCopyFlow(Context context, String targetPackage) {
+        if (!BravePrivateTabHelper.isBravePackage(targetPackage)) return false;
+        String mode = PREF(context).get();
+        if (PKG_FIREFOX.equals(mode)) return false;
+        if (MODE_BRAVE_COPY.equals(mode)) return true;
+        return mode == null || mode.isEmpty();
     }
 
     public static void attachToSpinner(Spinner spinner, Context context) {
@@ -79,6 +90,7 @@ public final class PrivateLinkBrowser {
     private static List<Entry> buildEntries(Context context) {
         var list = new ArrayList<Entry>();
         list.add(new Entry(context.getString(R.string.mOpen_private_browser_none), ""));
+        list.add(new Entry(context.getString(R.string.mOpen_private_browser_brave_copy), MODE_BRAVE_COPY));
         list.add(new Entry(context.getString(R.string.mOpen_private_browser_firefox), PKG_FIREFOX));
         return list;
     }

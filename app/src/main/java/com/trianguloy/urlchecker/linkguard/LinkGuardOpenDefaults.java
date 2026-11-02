@@ -6,6 +6,7 @@ import com.trianguloy.urlchecker.BuildConfig;
 import com.trianguloy.urlchecker.modules.companions.CTabs;
 import com.trianguloy.urlchecker.modules.companions.Incognito;
 import com.trianguloy.urlchecker.modules.companions.OnOffConfig;
+import com.trianguloy.urlchecker.modules.companions.BravePrivateTabHelper;
 import com.trianguloy.urlchecker.modules.companions.PrivateLinkBrowser;
 import com.trianguloy.urlchecker.routing.DomainRouteAction;
 import com.trianguloy.urlchecker.routing.DomainRoutingPrefs;
@@ -19,6 +20,7 @@ public final class LinkGuardOpenDefaults {
 
     private static final String MIGRATION_KEY = "linkguard_open_defaults_v1";
     private static final String PRIVATE_BROWSER_MIGRATION_KEY = "linkguard_private_browser_default_v1";
+    private static final String BRAVE_PRIVATE_MIGRATION_KEY = "linkguard_private_browser_brave_v1";
 
     private LinkGuardOpenDefaults() {
     }
@@ -39,6 +41,18 @@ public final class LinkGuardOpenDefaults {
                 PrivateLinkBrowser.PREF(context).set(PrivateLinkBrowser.PKG_FIREFOX);
             }
             prefs.edit().putBoolean(PRIVATE_BROWSER_MIGRATION_KEY, true).apply();
+        }
+
+        if (!prefs.getBoolean(BRAVE_PRIVATE_MIGRATION_KEY, false)) {
+            String current = PrivateLinkBrowser.PREF(context).get();
+            if (current == null || current.isEmpty()) {
+                String brave = BravePrivateTabHelper.resolveInstalledBravePackage(context);
+                if (brave != null
+                        && !PrivateLinkBrowser.isInstalled(context, PrivateLinkBrowser.PKG_FIREFOX)) {
+                    PrivateLinkBrowser.PREF(context).set(PrivateLinkBrowser.MODE_BRAVE_COPY);
+                }
+            }
+            prefs.edit().putBoolean(BRAVE_PRIVATE_MIGRATION_KEY, true).apply();
         }
     }
 }
