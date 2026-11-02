@@ -7,14 +7,20 @@ import android.content.Intent;
 public final class IncognitoIntentHelper {
 
     public static final String FIREFOX_EXTRA = "private_browsing_mode";
+    /** Chromium: honored only from Chrome / trusted first-party callers, not Link Guard. */
     public static final String CHROME_EXTRA = "com.google.android.apps.chrome.EXTRA_OPEN_NEW_INCOGNITO_TAB";
     public static final String CTABS_INCOGNITO = "androidx.browser.customtabs.extra.OPEN_IN_INCOGNITO";
     public static final String CTABS_INCOGNITO_LEGACY = "android.support.customtabs.extra.OPEN_IN_INCOGNITO";
     public static final String CTABS_SESSION = "android.support.customtabs.extra.SESSION";
 
+    /** Legacy / undocumented Samsung extras — not a reliable third-party API (see 4.0.8 field testing). */
     public static final String SAMSUNG_SECRET_MODE = "com.sec.android.app.sbrowser.secret_mode";
     public static final String SAMSUNG_USE_SECRET = "com.sec.android.app.sbrowser.UseSecretWebBrowser";
+    /** Undocumented; not listed in Microsoft Edge mobile developer docs. */
     public static final String EDGE_INPRIVATE = "com.microsoft.emmx.extra.LaunchInPrivateMode";
+
+    public static final String FIREFOX_INTENT_RECEIVER =
+            "org.mozilla.fenix.IntentReceiverActivity";
 
     public enum BrowserKind {
         FIREFOX,
@@ -43,6 +49,19 @@ public final class IncognitoIntentHelper {
         return BrowserKind.UNSUPPORTED;
     }
 
+    /**
+     * Only Firefox documents and implements {@link #FIREFOX_EXTRA} for third-party {@code ACTION_VIEW}
+     * intents (Fenix {@code IntentReceiverActivity}).
+     */
+    public static boolean supportsThirdPartyPrivateMode(String packageName) {
+        return kindForPackage(packageName) == BrowserKind.FIREFOX;
+    }
+
+    public static ComponentName firefoxViewComponent(String packageName) {
+        if (!supportsThirdPartyPrivateMode(packageName)) return null;
+        return new ComponentName(packageName, FIREFOX_INTENT_RECEIVER);
+    }
+
     public static String resolveTargetPackage(Intent intent) {
         if (intent.getPackage() != null) return intent.getPackage();
         ComponentName component = intent.getComponent();
@@ -54,14 +73,12 @@ public final class IncognitoIntentHelper {
         return intent.hasExtra(CTABS_SESSION);
     }
 
+    public static void stripCustomTabsSession(Intent intent) {
+        intent.removeExtra(CTABS_SESSION);
+    }
+
     public static boolean isIncognitoRequested(Intent intent) {
-        return intent.getBooleanExtra(FIREFOX_EXTRA, false)
-                || intent.getBooleanExtra(CHROME_EXTRA, false)
-                || intent.getBooleanExtra(CTABS_INCOGNITO, false)
-                || intent.getBooleanExtra(CTABS_INCOGNITO_LEGACY, false)
-                || intent.getBooleanExtra(SAMSUNG_SECRET_MODE, false)
-                || intent.getBooleanExtra(SAMSUNG_USE_SECRET, false)
-                || intent.getBooleanExtra(EDGE_INPRIVATE, false);
+        return intent.getBooleanExtra(FIREFOX_EXTRA, false);
     }
 
     public static void clearIncognitoExtras(Intent intent) {
@@ -75,35 +92,18 @@ public final class IncognitoIntentHelper {
     }
 
     /**
-     * @return true if this browser (or Custom Tab path) has a known private-mode API
+     * @return true if incognito is off, or Firefox (or Custom Tab + Firefox) private mode was applied
      */
     public static boolean applyIncognitoExtras(Intent intent, boolean incognitoOn) {
         clearIncognitoExtras(intent);
         if (!incognitoOn) return true;
 
-        boolean customTabs = usesCustomTabs(intent);
         String pkg = resolveTargetPackage(intent);
-        BrowserKind kind = kindForPackage(pkg);
-
-        if (customTabs) {
-            intent.putExtra(CTABS_INCOGNITO, true);
-            intent.putExtra(CTABS_INCOGNITO_LEGACY, true);
+        if (!supportsThirdPartyPrivateMode(pkg)) {
+            return false;
         }
 
-        switch (kind) {
-            case FIREFOX -> intent.putExtra(FIREFOX_EXTRA, true);
-            case CHROMIUM -> intent.putExtra(CHROME_EXTRA, true);
-            case SAMSUNG -> {
-                intent.putExtra(SAMSUNG_SECRET_MODE, true);
-                intent.putExtra(SAMSUNG_USE_SECRET, true);
-                intent.putExtra(CHROME_EXTRA, true);
-            }
-            case EDGE -> intent.putExtra(EDGE_INPRIVATE, true);
-            case UNSUPPORTED -> {
-                if (customTabs) return true;
-                return false;
-            }
-        }
+        intent.putExtra(FIREFOX_EXTRA, true);
         return true;
     }
 }

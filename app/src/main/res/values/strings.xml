@@ -342,7 +342,7 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="mOpen_name">Open and share</string>
     <string name="mOpen_desc">"Contains the following buttons (left to right):
 - Custom Tabs button: toggle to enable/disable the custom tab feature. When enabled, the browser should be opened in a 'lite' mode.
-- Incognito button: Toggle private browsing for supported browsers (Firefox, Chrome, Samsung Internet, Brave, Edge). When on, the link opens in private/incognito mode when the browser supports it.
+- Incognito button: Opens the link in private browsing when supported. Chrome, Brave, and Samsung Internet cannot open private tabs from other apps — set “Browser for private links” to Firefox (Open module settings) or turn private browsing off.
 - Open button: Press the app name to open the link on that app. If a link can be opened with multiple apps, an arrow will be shown to let you choose.
 - Copy button: Press the button to copy the link into the clipboard.
 - Share button: Press the button to share the link."</string>
@@ -367,8 +367,11 @@ Note: if you edit the patterns, new built-in patterns from app updates will not 
     <string name="mOpen_ctabs_on_desc">Custom Tabs on — opens in browser’s lightweight in-app bar</string>
     <string name="mOpen_incognitoDesc">Private browsing: off = normal browser tab</string>
     <string name="mOpen_incognito_off_desc">Private browsing off — normal browser tab</string>
-    <string name="mOpen_incognito_on_desc">Private browsing on — opens in private/incognito mode</string>
-    <string name="incognito_unsupported">Private browsing is not supported for %1$s. Turn off private browsing or choose another browser.</string>
+    <string name="mOpen_incognito_on_desc">Private browsing on — opens in Firefox private tab when possible</string>
+    <string name="incognito_unsupported">%1$s cannot open private tabs from other apps. Install Firefox and set “Browser for private links” in Open settings, or turn private browsing off.</string>
+    <string name="mOpen_private_browser">Browser for private links:</string>
+    <string name="mOpen_private_browser_none">None (show message if unsupported)</string>
+    <string name="mOpen_private_browser_firefox">Firefox</string>
     <string name="err_network_timeout">Connection timed out. Check network or try again.</string>
     <string name="err_network_dns">Could not resolve host (DNS failure).</string>
     <string name="err_network_connect">Could not connect to the server.</string>

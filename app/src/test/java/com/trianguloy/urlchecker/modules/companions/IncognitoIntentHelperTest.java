@@ -2,12 +2,12 @@ package com.trianguloy.urlchecker.modules.companions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.ComponentName;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.Bundle;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,72 +38,58 @@ public class IncognitoIntentHelperTest {
                 IncognitoIntentHelper.kindForPackage("com.sec.android.app.sbrowser"));
         assertEquals(IncognitoIntentHelper.BrowserKind.EDGE,
                 IncognitoIntentHelper.kindForPackage("com.microsoft.emmx"));
-        assertEquals(IncognitoIntentHelper.BrowserKind.UNSUPPORTED,
-                IncognitoIntentHelper.kindForPackage("com.example.browser"));
+    }
+
+    @Test
+    public void onlyFirefoxSupportsThirdPartyPrivateMode() {
+        assertTrue(IncognitoIntentHelper.supportsThirdPartyPrivateMode("org.mozilla.firefox"));
+        assertFalse(IncognitoIntentHelper.supportsThirdPartyPrivateMode("com.brave.browser"));
+        assertFalse(IncognitoIntentHelper.supportsThirdPartyPrivateMode("com.android.chrome"));
+        assertFalse(IncognitoIntentHelper.supportsThirdPartyPrivateMode("com.sec.android.app.sbrowser"));
+        assertFalse(IncognitoIntentHelper.supportsThirdPartyPrivateMode("com.microsoft.emmx"));
     }
 
     @Test
     public void applyOffClearsExtras() {
-        Intent intent = viewIntent("com.android.chrome");
-        intent.putExtra(IncognitoIntentHelper.CHROME_EXTRA, true);
+        Intent intent = viewIntent("org.mozilla.firefox");
+        intent.putExtra(IncognitoIntentHelper.FIREFOX_EXTRA, true);
         assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, false));
         assertFalse(IncognitoIntentHelper.isIncognitoRequested(intent));
     }
 
     @Test
-    public void applyFirefoxExtra() {
+    public void applyFirefoxExtraOnlyForFirefox() {
         Intent intent = viewIntent("org.mozilla.firefox");
         assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
         assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.FIREFOX_EXTRA, false));
-        assertFalse(intent.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
     }
 
     @Test
-    public void applyChromeExtra() {
-        Intent intent = viewIntent("com.android.chrome");
-        assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
+    public void applyBraveReturnsFalse() {
+        assertFalse(IncognitoIntentHelper.applyIncognitoExtras(viewIntent("com.brave.browser"), true));
     }
 
     @Test
-    public void applySamsungExtras() {
-        Intent intent = viewIntent("com.sec.android.app.sbrowser");
-        assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.SAMSUNG_SECRET_MODE, false));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.SAMSUNG_USE_SECRET, false));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
+    public void applySamsungReturnsFalse() {
+        assertFalse(IncognitoIntentHelper.applyIncognitoExtras(
+                viewIntent("com.sec.android.app.sbrowser"), true));
     }
 
     @Test
-    public void applyEdgeExtra() {
-        Intent intent = viewIntent("com.microsoft.emmx");
-        assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.EDGE_INPRIVATE, false));
+    public void applyChromeReturnsFalse() {
+        assertFalse(IncognitoIntentHelper.applyIncognitoExtras(viewIntent("com.android.chrome"), true));
     }
 
     @Test
-    public void applyBraveUsesChromeIncognitoExtra() {
-        Intent intent = viewIntent("com.brave.browser");
-        assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
+    public void firefoxViewComponent() {
+        ComponentName cn = IncognitoIntentHelper.firefoxViewComponent("org.mozilla.firefox");
+        assertEquals("org.mozilla.firefox", cn.getPackageName());
+        assertEquals(IncognitoIntentHelper.FIREFOX_INTENT_RECEIVER, cn.getClassName());
     }
 
     @Test
-    public void applyCustomTabsIncognitoEvenWithoutKnownPackage() {
-        Intent intent = viewIntent(null);
-        intent.setComponent(new ComponentName("com.unknown.app", ".Browser"));
-        Bundle extras = new Bundle();
-        extras.putBinder(IncognitoIntentHelper.CTABS_SESSION, null);
-        intent.putExtras(extras);
-        assertTrue(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.CTABS_INCOGNITO, false));
-        assertTrue(intent.getBooleanExtra(IncognitoIntentHelper.CTABS_INCOGNITO_LEGACY, false));
-    }
-
-    @Test
-    public void applyUnsupportedBrowserReturnsFalse() {
-        Intent intent = viewIntent("com.opera.browser");
-        assertFalse(IncognitoIntentHelper.applyIncognitoExtras(intent, true));
+    public void firefoxViewComponentNullForBrave() {
+        assertNull(IncognitoIntentHelper.firefoxViewComponent("com.brave.browser"));
     }
 
     @Test

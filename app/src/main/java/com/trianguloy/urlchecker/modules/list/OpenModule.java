@@ -23,7 +23,9 @@ import com.trianguloy.urlchecker.modules.AutomationRules;
 import com.trianguloy.urlchecker.modules.companions.CTabs;
 import com.trianguloy.urlchecker.modules.companions.Flags;
 import com.trianguloy.urlchecker.modules.companions.Incognito;
+import com.trianguloy.urlchecker.modules.companions.IncognitoIntentHelper;
 import com.trianguloy.urlchecker.modules.companions.LastOpened;
+import com.trianguloy.urlchecker.modules.companions.PrivateLinkBrowser;
 import com.trianguloy.urlchecker.modules.companions.ShareUtility;
 import com.trianguloy.urlchecker.modules.companions.Size;
 import com.trianguloy.urlchecker.url.UrlData;
@@ -272,6 +274,12 @@ class OpenDialog extends AModuleDialog {
         // ctabs
         cTabs.apply(intent);
 
+        if (incognito.isOn()) {
+            retargetForPrivateBrowsing(intent, component, packageName);
+            component = intent.getComponent();
+            packageName = intent.getPackage();
+        }
+
         // incognito (after Custom Tabs session extra is applied)
         if (!incognito.apply(intent) && incognito.isOn()) {
             String label = browserLabelFor(component, packageName);
@@ -299,6 +307,35 @@ class OpenDialog extends AModuleDialog {
     /** Show the popup with the rest of the apps */
     private void showList() {
         popup.show();
+    }
+
+    /**
+     * When the chosen handler cannot open private tabs, retarget to the configured private browser
+     * (Firefox) if available.
+     */
+    private void retargetForPrivateBrowsing(Intent intent, ComponentName component, String packageName) {
+        String targetPkg = packageName;
+        if (targetPkg == null && component != null) targetPkg = component.getPackageName();
+        if (IncognitoIntentHelper.supportsThirdPartyPrivateMode(targetPkg)) return;
+
+        String redirect = PrivateLinkBrowser.resolveInstalledPrivateBrowser(getActivity());
+        if (redirect.isEmpty()) return;
+
+        IncognitoIntentHelper.stripCustomTabsSession(intent);
+        ComponentName redirectComponent = findComponentForPackage(redirect);
+        if (redirectComponent == null) {
+            redirectComponent = IncognitoIntentHelper.firefoxViewComponent(redirect);
+        }
+        intent.setComponent(redirectComponent);
+        intent.setPackage(redirect);
+    }
+
+    private ComponentName findComponentForPackage(String pkg) {
+        if (intentApps == null) return null;
+        for (var ri : intentApps) {
+            if (pkg.equals(ri.getPackage())) return ri.getComponent();
+        }
+        return null;
     }
 
     private String browserLabelFor(ComponentName component, String packageName) {
@@ -338,6 +375,7 @@ class OpenConfig extends AModuleConfig {
     public void onInitialize(View views) {
         CTabs.PREF(getActivity()).attachToSpinner(views.findViewById(R.id.ctabs_pref), null);
         Incognito.PREF(getActivity()).attachToSpinner(views.findViewById(R.id.incognito_pref), null);
+        PrivateLinkBrowser.attachToSpinner(views.findViewById(R.id.private_browser_pref), getActivity());
         OpenModule.CLOSEOPEN_PREF(getActivity()).attachToSwitch(views.findViewById(R.id.closeopen_pref));
         OpenModule.NOREFERRER_PREF(getActivity()).attachToSwitch(views.findViewById(R.id.noReferrer));
         OpenModule.REJECTED_PREF(getActivity()).attachToSwitch(views.findViewById(R.id.rejected));
