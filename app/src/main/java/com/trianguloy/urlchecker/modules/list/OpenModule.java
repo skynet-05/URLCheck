@@ -305,7 +305,7 @@ class OpenDialog extends AModuleDialog {
         if (component != null) {
             for (var ri : intentApps) {
                 if (Objects.equals(ri.getComponent(), component)) {
-                    return ri.getLabel(getActivity());
+                    return ri.getLabel(getActivity()).toString();
                 }
             }
             packageName = component.getPackageName();
