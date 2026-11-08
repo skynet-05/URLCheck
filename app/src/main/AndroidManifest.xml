@@ -14,6 +14,9 @@
         <intent>
             <action android:name="*" />
         </intent>
+        <intent>
+            <action android:name="org.chromium.chrome.browser.incognito.OPEN_PRIVATE_TAB" />
+        </intent>
     </queries>
 
     <application

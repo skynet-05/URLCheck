@@ -1,29 +1,40 @@
 package com.trianguloy.urlchecker.modules.companions;
 
+import android.content.ActivityNotFoundException;
 import android.content.ClipData;
 import android.content.ClipDescription;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.PersistableBundle;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
-/** Copy link + best-effort Brave private tab (Chromium blocks URL load from third parties). */
+/**
+ * Copy link + launch Brave blank private tab via Chromium {@code IncognitoTabLauncher}.
+ * See <a href="https://github.com/chromium/chromium/blob/main/chrome/android/java/src/org/chromium/chrome/browser/incognito/IncognitoTabLauncher.java">IncognitoTabLauncher</a>.
+ */
 public final class BravePrivateTabHelper {
 
     public static final String PKG_BRAVE = "com.brave.browser";
     public static final String PKG_BRAVE_BETA = "com.brave.browser_beta";
     public static final String PKG_BRAVE_NIGHTLY = "com.brave.browser_nightly";
 
+    /**
+     * Intent action handled by Chromium's exported {@code IncognitoTabLauncher} activity.
+     */
+    public static final String ACTION_OPEN_PRIVATE_TAB =
+            "org.chromium.chrome.browser.incognito.OPEN_PRIVATE_TAB";
+
+    public static final String INCOGNITO_TAB_LAUNCHER =
+            "org.chromium.chrome.browser.incognito.IncognitoTabLauncher";
+
     private static final String[] BRAVE_PACKAGES = {
             PKG_BRAVE, PKG_BRAVE_BETA, PKG_BRAVE_NIGHTLY
     };
-
-    /** Chromium launcher entry used by Brave (inherits Chrome document model). */
-    static final String CHROME_LAUNCHER_ACTIVITY =
-            "org.chromium.chrome.browser.document.ChromeLauncherActivity";
 
     private BravePrivateTabHelper() {
     }
@@ -58,38 +69,45 @@ public final class BravePrivateTabHelper {
     }
 
     /**
-     * Best-effort launch of a new private tab without loading the URL from Link Guard.
-     * Chromium {@code isAllowedIncognitoIntent} usually rejects third-party callers; we still try
-     * documented-shaped intents and return whether an activity was started.
+     * Starts Brave's {@code IncognitoTabLauncher} with no URL (blank focused omnibox).
+     *
+     * @return true if startActivity succeeded
      */
     public static boolean tryLaunchNewPrivateTab(Context context, String bravePackage) {
-        for (Intent candidate : buildPrivateTabLaunchCandidates(context, bravePackage)) {
-            if (candidate == null) continue;
-            if (candidate.resolveActivity(context.getPackageManager()) == null) continue;
-            context.startActivity(candidate.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-            return true;
+        Intent intent = buildOpenPrivateTabIntent(bravePackage);
+        if (!isIncognitoTabLauncherResolvable(context, bravePackage)) {
+            return false;
         }
-        return false;
+        try {
+            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            return true;
+        } catch (ActivityNotFoundException | SecurityException e) {
+            return false;
+        }
     }
 
-    static Intent[] buildPrivateTabLaunchCandidates(Context context, String bravePackage) {
-        var pm = context.getPackageManager();
-        Intent launch = pm.getLaunchIntentForPackage(bravePackage);
-        Intent fromLaunch = null;
-        if (launch != null) {
-            fromLaunch = new Intent(launch);
-            fromLaunch.setData(null);
-            fromLaunch.removeCategory(Intent.CATEGORY_LAUNCHER);
-            fromLaunch.putExtra(IncognitoIntentHelper.CHROME_EXTRA, true);
+    @VisibleForTesting
+    static Intent buildOpenPrivateTabIntent(String bravePackage) {
+        Intent intent = new Intent(ACTION_OPEN_PRIVATE_TAB);
+        intent.setComponent(new ComponentName(bravePackage, INCOGNITO_TAB_LAUNCHER));
+        return intent;
+    }
+
+    @VisibleForTesting
+    static boolean isIncognitoTabLauncherResolvable(Context context, String bravePackage) {
+        Intent intent = buildOpenPrivateTabIntent(bravePackage);
+        return intent.resolveActivity(context.getPackageManager()) != null;
+    }
+
+    /** Component enabled and exported in the installed Brave build (not disabled by policy). */
+    public static boolean isIncognitoTabLauncherEnabled(Context context, String bravePackage) {
+        try {
+            var info = context.getPackageManager().getActivityInfo(
+                    new ComponentName(bravePackage, INCOGNITO_TAB_LAUNCHER),
+                    PackageManager.GET_META_DATA);
+            return info.enabled && info.exported;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
         }
-        Intent aboutBlank = new Intent(Intent.ACTION_VIEW, Uri.parse("about:blank"));
-        aboutBlank.setPackage(bravePackage);
-        aboutBlank.putExtra(IncognitoIntentHelper.CHROME_EXTRA, true);
-
-        Intent launcherActivity = new Intent(Intent.ACTION_MAIN);
-        launcherActivity.setClassName(bravePackage, CHROME_LAUNCHER_ACTIVITY);
-        launcherActivity.putExtra(IncognitoIntentHelper.CHROME_EXTRA, true);
-
-        return new Intent[] {fromLaunch, aboutBlank, launcherActivity};
     }
 }

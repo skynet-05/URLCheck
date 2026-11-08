@@ -2,11 +2,11 @@ package com.trianguloy.urlchecker.modules.companions;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import android.content.ComponentName;
 import android.content.Intent;
-import android.net.Uri;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,36 +26,19 @@ public class BravePrivateTabHelperTest {
     }
 
     @Test
-    public void launchCandidatesIncludeIncognitoExtraWithoutUrl() {
-        Intent[] intents = BravePrivateTabHelper.buildPrivateTabLaunchCandidates(
-                org.robolectric.RuntimeEnvironment.getApplication(), BravePrivateTabHelper.PKG_BRAVE);
-        assertTrue(intents.length >= 2);
-        Intent aboutBlank = intents[1];
-        assertEquals(Intent.ACTION_VIEW, aboutBlank.getAction());
-        assertEquals(Uri.parse("about:blank"), aboutBlank.getData());
-        assertEquals(BravePrivateTabHelper.PKG_BRAVE, aboutBlank.getPackage());
-        assertTrue(aboutBlank.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
+    public void openPrivateTabIntentUsesChromiumActionAndComponent() {
+        Intent intent = BravePrivateTabHelper.buildOpenPrivateTabIntent(BravePrivateTabHelper.PKG_BRAVE);
+        assertEquals(BravePrivateTabHelper.ACTION_OPEN_PRIVATE_TAB, intent.getAction());
+        assertEquals(new ComponentName(BravePrivateTabHelper.PKG_BRAVE,
+                BravePrivateTabHelper.INCOGNITO_TAB_LAUNCHER), intent.getComponent());
+        assertNull(intent.getData());
+        assertTrue(intent.getExtras() == null || intent.getExtras().isEmpty());
     }
 
     @Test
-    public void launchCandidateFromMainHasIncognitoExtraAndNoData() {
-        Intent[] intents = BravePrivateTabHelper.buildPrivateTabLaunchCandidates(
-                org.robolectric.RuntimeEnvironment.getApplication(), BravePrivateTabHelper.PKG_BRAVE);
-        Intent fromLaunch = intents[0];
-        if (fromLaunch != null) {
-            assertTrue(fromLaunch.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
-            assertEquals(null, fromLaunch.getData());
-        }
-    }
-
-    @Test
-    public void launcherActivityCandidateUsesChromeLauncherActivity() {
-        Intent[] intents = BravePrivateTabHelper.buildPrivateTabLaunchCandidates(
-                org.robolectric.RuntimeEnvironment.getApplication(), BravePrivateTabHelper.PKG_BRAVE);
-        Intent launcher = intents[2];
-        assertNotNull(launcher);
-        assertEquals(BravePrivateTabHelper.CHROME_LAUNCHER_ACTIVITY,
-                launcher.getComponent().getClassName());
-        assertTrue(launcher.getBooleanExtra(IncognitoIntentHelper.CHROME_EXTRA, false));
+    public void openPrivateTabIntentNeverCarriesUrl() {
+        Intent intent = BravePrivateTabHelper.buildOpenPrivateTabIntent(BravePrivateTabHelper.PKG_BRAVE_BETA);
+        assertEquals(BravePrivateTabHelper.PKG_BRAVE_BETA, intent.getComponent().getPackageName());
+        assertNull(intent.getDataString());
     }
 }
